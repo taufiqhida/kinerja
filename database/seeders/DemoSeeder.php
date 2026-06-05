@@ -153,7 +153,7 @@ class DemoSeeder extends Seeder
                     'periode_id' => $periode->id,
                     'nama_indikator' => $ind['nama'],
                     'satuan' => $ind['satuan'],
-                    'target_tahunan' => $ind['target'],
+                    'target_bulanan' => $ind['target'],
                 ]);
             }
         }

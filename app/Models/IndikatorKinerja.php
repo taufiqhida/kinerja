@@ -16,7 +16,7 @@ class IndikatorKinerja extends Model
         'periode_id',
         'nama_indikator',
         'satuan',
-        'target_tahunan',
+        'target_bulanan',
     ];
 
     public function pegawai(): BelongsTo
@@ -62,10 +62,10 @@ class IndikatorKinerja extends Model
      */
     public function getCapaianPersenAttribute(): float
     {
-        if ($this->target_tahunan == 0) {
+        if ($this->target_bulanan == 0) {
             return 0;
         }
 
-        return round(($this->total_realisasi / $this->target_tahunan) * 100, 2);
+        return round(($this->total_realisasi / $this->target_bulanan) * 100, 2);
     }
 }

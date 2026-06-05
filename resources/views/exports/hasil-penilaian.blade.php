@@ -126,7 +126,7 @@
             @foreach($indikators as $i => $indikator)
                 @php
                     $totalRealisasi = $indikator->realisasiKinerja->sum('jumlah_realisasi');
-                    $target = $indikator->target_tahunan;
+                    $target = $indikator->target_bulanan;
                     $capaian = $target > 0 ? round(($totalRealisasi / $target) * 100, 1) : 0;
                     $penilaian = $indikator->penilaianHasil;
                     $nilaiLabel = $penilaian ? (\App\Models\PenilaianHasil::NILAI_LABEL[$penilaian->nilai] ?? '-') : 'Belum Dinilai';

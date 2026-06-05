@@ -32,7 +32,7 @@
                 @foreach($indikators as $indikator)
                     @php
                         $totalRealisasi = collect($indikator['realisasi_kinerja'] ?? [])->sum('jumlah_realisasi');
-                        $target = $indikator['target_tahunan'] ?? 0;
+                        $target = $indikator['target_bulanan'] ?? 0;
                         $capaian = $target > 0 ? round(($totalRealisasi / $target) * 100, 1) : 0;
                         $progressColor = $capaian >= 100 ? '#22c55e' : ($capaian >= 50 ? '#eab308' : '#ef4444');
                         $penilaian = $indikator['penilaian_hasil'] ?? null;

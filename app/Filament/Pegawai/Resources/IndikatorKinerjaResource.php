@@ -42,12 +42,12 @@ class IndikatorKinerjaResource extends Resource
                     ->required()
                     ->maxLength(100)
                     ->placeholder('e.g. pasien, kegiatan, laporan'),
-                Forms\Components\TextInput::make('target_tahunan')
-                    ->label('Target Tahunan')
+                Forms\Components\TextInput::make('target_bulanan')
+                    ->label('Target Bulanan')
                     ->required()
                     ->numeric()
                     ->minValue(1)
-                    ->placeholder('e.g. 100'),
+                    ->placeholder('e.g. 10'),
             ])->columns(2),
         ]);
     }
@@ -65,8 +65,8 @@ class IndikatorKinerjaResource extends Resource
                 Tables\Columns\TextColumn::make('satuan')
                     ->label('Satuan')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('target_tahunan')
-                    ->label('Target')
+                Tables\Columns\TextColumn::make('target_bulanan')
+                    ->label('Target/Bln')
                     ->sortable()
                     ->alignCenter(),
                 Tables\Columns\TextColumn::make('total_realisasi')
