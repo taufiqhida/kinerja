@@ -36,6 +36,7 @@ class DetailPegawai extends Page implements HasForms
     public array $feedbacks = [];
     public array $penilaianPerilaku = [];
     public array $nilaiAkhir = [];
+    public string $overallPenilaianHasil = '';
 
     public function mount(Pegawai $record): void
     {
@@ -62,11 +63,16 @@ class DetailPegawai extends Page implements HasForms
         $this->indikators = $indikators->toArray();
 
         // Load existing penilaian hasil
+        $hasOverall = false;
         foreach ($indikators as $indikator) {
             $existing = PenilaianHasil::where('indikator_kinerja_id', $indikator->id)
                 ->where('kepala_id', $this->kepala->id)
                 ->first();
             $this->penilaianHasil[$indikator->id] = $existing?->nilai ?? '';
+            if ($existing && !$hasOverall) {
+                $this->overallPenilaianHasil = $existing->nilai;
+                $hasOverall = true;
+            }
 
             $existingFeedback = FeedbackHasil::where('indikator_kinerja_id', $indikator->id)
                 ->where('kepala_id', $this->kepala->id)
@@ -106,18 +112,24 @@ class DetailPegawai extends Page implements HasForms
             return;
         }
 
-        foreach ($this->penilaianHasil as $indikatorId => $nilai) {
-            if (empty($nilai)) {
-                continue;
-            }
+        if (empty($this->overallPenilaianHasil)) {
+            Notification::make()
+                ->title('Peringatan')
+                ->body('Pilih Rating Hasil Kerja terlebih dahulu.')
+                ->warning()
+                ->send();
+            return;
+        }
 
+        // Save penilaian hasil for all indicators
+        foreach ($this->indikators as $indikator) {
             PenilaianHasil::updateOrCreate(
                 [
-                    'indikator_kinerja_id' => $indikatorId,
+                    'indikator_kinerja_id' => $indikator['id'],
                     'kepala_id' => $this->kepala->id,
                 ],
                 [
-                    'nilai' => $nilai,
+                    'nilai' => $this->overallPenilaianHasil,
                 ]
             );
         }

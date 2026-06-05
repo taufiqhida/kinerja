@@ -36,7 +36,7 @@ class PenilaianPerilaku extends Model
     ];
 
     public const NILAI_LABEL = [
-        'perlu_perbaikan' => 'Perlu Perbaikan',
+        'perlu_perbaikan' => 'Di Bawah Ekspektasi',
         'sesuai_ekspektasi' => 'Sesuai Ekspektasi',
         'di_atas_ekspektasi' => 'Di Atas Ekspektasi',
     ];

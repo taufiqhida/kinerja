@@ -38,7 +38,7 @@ class PenilaianHasil extends Model
      * Map nilai to label display.
      */
     public const NILAI_LABEL = [
-        'perlu_perbaikan' => 'Perlu Perbaikan',
+        'perlu_perbaikan' => 'Di Bawah Ekspektasi',
         'sesuai_ekspektasi' => 'Sesuai Ekspektasi',
         'di_atas_ekspektasi' => 'Di Atas Ekspektasi',
     ];

@@ -104,108 +104,148 @@
 
         {{-- ====== PENILAIAN HASIL KERJA ====== --}}
         <div class="rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3">
-                <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:10px;padding:8px;flex-shrink:0;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2563eb" style="width:18px;height:18px;">
+            {{-- Header --}}
+            <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" style="width:18px;height:18px;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-base font-semibold text-gray-900 dark:text-white">Penilaian Hasil Kerja</h3>
-                    <p class="text-xs text-gray-400 dark:text-gray-500">Bobot 60% &bull; Target per bulan</p>
+                    <h3 style="font-size:1rem;font-weight:700;color:#111827;margin:0;">Penilaian Hasil Kerja</h3>
+                    <p style="font-size:0.75rem;color:#6b7280;margin-top:2px;">Bobot 60% &bull; Target per bulan</p>
                 </div>
             </div>
 
             <form wire:submit="simpanPenilaianHasil">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr style="background:#f8faff;" class="dark:bg-gray-800/50">
-                                <th class="text-left py-3 px-4 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Indikator Kinerja</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Satuan</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Target/Bln</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Realisasi</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Capaian</th>
-                                <th class="text-center py-3 px-3 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Penilaian</th>
-                                <th class="text-left py-3 px-3 font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wide">Feedback</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($indikators as $indikator)
-                                @php
-                                    $totalRealisasi = collect($indikator['realisasi_kinerja'] ?? [])->sum('jumlah_realisasi');
-                                    $target = $indikator['target_bulanan'] ?? 0;
-                                    $capaian = $target > 0 ? round(($totalRealisasi / $target) * 100, 1) : 0;
-                                    $capColor = $capaian >= 100 ? '#16a34a' : ($capaian >= 50 ? '#d97706' : '#dc2626');
-                                    $capBg = $capaian >= 100 ? '#f0fdf4' : ($capaian >= 50 ? '#fffbeb' : '#fef2f2');
-                                @endphp
-                                <tr class="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                                    <td class="py-4 px-4">
-                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">{{ $indikator['nama_indikator'] }}</p>
-                                        @if(count($indikator['bukti_dukung'] ?? []) > 0)
-                                            <div class="mt-1.5 flex flex-wrap gap-1">
-                                                @foreach($indikator['bukti_dukung'] as $bukti)
-                                                    <a href="{{ $bukti['link_bukti'] }}" target="_blank"
-                                                       class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
-                                                       style="background:#eff6ff;color:#2563eb;text-decoration:none;">
-                                                        📎 {{ $bukti['judul_bukti'] }}
-                                                    </a>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td class="py-4 px-3 text-center">
-                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ $indikator['satuan'] }}</span>
-                                    </td>
-                                    <td class="py-4 px-3 text-center">
-                                        <span class="font-bold text-gray-900 dark:text-white">{{ $target }}</span>
-                                    </td>
-                                    <td class="py-4 px-3 text-center">
-                                        <span class="font-bold text-gray-900 dark:text-white">{{ $totalRealisasi }}</span>
-                                    </td>
-                                    <td class="py-4 px-3 text-center">
-                                        <div class="flex flex-col items-center gap-1.5">
-                                            <span class="text-sm font-bold px-2 py-0.5 rounded-full" style="background:{{ $capBg }};color:{{ $capColor }};">
-                                                {{ $capaian }}%
-                                            </span>
-                                            <div style="width:60px;background:#e5e7eb;border-radius:9999px;height:5px;overflow:hidden;">
-                                                <div style="height:5px;border-radius:9999px;background:{{ $capColor }};width:{{ min($capaian, 100) }}%;transition:width 0.5s ease;"></div>
-                                            </div>
+                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;">
+                    @forelse($indikators as $indikator)
+                        @php
+                            $totalRealisasi = collect($indikator['realisasi_kinerja'] ?? [])->sum('jumlah_realisasi');
+                            $target = $indikator['target_bulanan'] ?? 0;
+                            $capaian = $target > 0 ? round(($totalRealisasi / $target) * 100, 1) : 0;
+                            $capColor = $capaian >= 100 ? '#16a34a' : ($capaian >= 50 ? '#d97706' : '#dc2626');
+                            $capBg = $capaian >= 100 ? '#f0fdf4' : ($capaian >= 50 ? '#fffbeb' : '#fef2f2');
+                            $capBorder = $capaian >= 100 ? '#bbf7d0' : ($capaian >= 50 ? '#fde68a' : '#fecaca');
+                        @endphp
+                        <div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
+                            {{-- Card Header: Info Row --}}
+                            <div style="padding:16px 20px;background:linear-gradient(to bottom,#f9fafb,#fff);">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;">
+                                    <h4 style="font-size:0.9rem;font-weight:600;color:#1f2937;margin:0;">{{ $indikator['nama_indikator'] }}</h4>
+                                    {{-- Capaian Badge --}}
+                                    <span style="background:{{ $capBg }};color:{{ $capColor }};border:1px solid {{ $capBorder }};font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;">
+                                        {{ $capaian }}%
+                                    </span>
+                                </div>
+
+                                {{-- Stats Row --}}
+                                <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Satuan</span>
+                                        <span style="font-size:0.8rem;color:#374151;font-weight:500;">{{ $indikator['satuan'] }}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Target/Bln</span>
+                                        <span style="font-size:0.8rem;color:#374151;font-weight:700;">{{ $target }}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Realisasi</span>
+                                        <span style="font-size:0.8rem;color:#374151;font-weight:700;">{{ $totalRealisasi }}</span>
+                                    </div>
+                                    {{-- Progress Bar --}}
+                                    <div style="flex:1;min-width:100px;">
+                                        <div style="width:100%;background:#e5e7eb;border-radius:9999px;height:6px;overflow:hidden;">
+                                            <div style="height:6px;border-radius:9999px;background:{{ $capColor }};width:{{ min($capaian, 100) }}%;transition:width 0.5s ease;"></div>
                                         </div>
-                                    </td>
-                                    <td class="py-4 px-3 text-center">
-                                        <select wire:model="penilaianHasil.{{ $indikator['id'] }}"
-                                                class="rounded-lg border-gray-300 text-xs dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 py-1.5">
-                                            <option value="">-- Pilih --</option>
-                                            <option value="di_atas_ekspektasi">👍👍 Di Atas Ekspektasi</option>
-                                            <option value="sesuai_ekspektasi">👍 Sesuai Ekspektasi</option>
-                                            <option value="perlu_perbaikan">👎 Perlu Perbaikan</option>
-                                        </select>
-                                    </td>
-                                    <td class="py-4 px-3">
-                                        <textarea wire:model="feedbacks.{{ $indikator['id'] }}"
-                                                  rows="2"
-                                                  placeholder="Feedback..."
-                                                  class="w-full rounded-lg border-gray-300 text-xs dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"></textarea>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="py-12 text-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width:40px;height:40px;margin:0 auto 8px;">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                                        </svg>
-                                        <p class="text-gray-400 dark:text-gray-500 text-sm">Pegawai belum memiliki indikator kinerja untuk periode ini.</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+
+                                {{-- Bukti Dukung --}}
+                                @if(count($indikator['bukti_dukung'] ?? []) > 0)
+                                    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+                                        @foreach($indikator['bukti_dukung'] as $bukti)
+                                            <a href="{{ $bukti['link_bukti'] }}" target="_blank"
+                                               style="display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-weight:500;padding:3px 10px;border-radius:20px;background:#eff6ff;color:#2563eb;text-decoration:none;">
+                                                📎 {{ $bukti['judul_bukti'] }}
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                            {{-- Card Bottom: Feedback Only with Quick Emoji Buttons --}}
+                            <div style="border-top:1px solid #f3f4f6;padding:16px 20px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+                                    <label style="font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin:0;">Feedback</label>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <span style="font-size:0.7rem;color:#9ca3af;font-weight:500;">Feedback Cepat:</span>
+                                        <button type="button" 
+                                                wire:click="$set('feedbacks.{{ $indikator['id'] }}', '👎 Di Bawah Ekspektasi')" 
+                                                style="padding:3px 8px;font-size:0.75rem;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;">
+                                            👎 Di Bawah Ekspektasi
+                                        </button>
+                                        <button type="button" 
+                                                wire:click="$set('feedbacks.{{ $indikator['id'] }}', '👍 Sesuai Ekspektasi')" 
+                                                style="padding:3px 8px;font-size:0.75rem;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;">
+                                            👍 Sesuai Ekspektasi
+                                        </button>
+                                        <button type="button" 
+                                                wire:click="$set('feedbacks.{{ $indikator['id'] }}', '👍👍 Di Atas Ekspektasi')" 
+                                                style="padding:3px 8px;font-size:0.75rem;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;">
+                                            👍👍 Di Atas Ekspektasi
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea wire:model="feedbacks.{{ $indikator['id'] }}"
+                                          rows="2"
+                                          placeholder="Tuliskan feedback..."
+                                          style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#374151;resize:vertical;background:#fafafa;box-sizing:border-box;"></textarea>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="padding:40px 20px;text-align:center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width:40px;height:40px;margin:0 auto 8px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                            </svg>
+                            <p style="color:#9ca3af;font-size:0.875rem;">Pegawai belum memiliki indikator kinerja untuk periode ini.</p>
+                        </div>
+                    @endforelse
+
+                    {{-- ====== OVERALL RATING ====== --}}
+                    @if(count($indikators) > 0)
+                        <div style="margin-top:20px;padding:20px 24px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:16px;display:flex;flex-direction:column;gap:12px;">
+                            <div>
+                                <h4 style="font-size:0.9rem;font-weight:700;color:#1e293b;margin:0;">Rating Hasil Kerja (Keseluruhan)</h4>
+                                <p style="font-size:0.75rem;color:#64748b;margin-top:2px;">Pilih penilaian akhir untuk capaian hasil kerja pegawai secara keseluruhan</p>
+                            </div>
+                            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                                {{-- Option: Di Bawah Ekspektasi --}}
+                                <div wire:click="$set('overallPenilaianHasil', 'perlu_perbaikan')" 
+                                     style="flex:1;min-width:180px;cursor:pointer;margin:0;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#ef4444' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#fef2f2' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '0 4px 12px rgba(239,68,68,0.1)' : 'none' }};">
+                                    <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👎</div>
+                                    <div style="font-size:0.85rem;font-weight:700;color:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#991b1b' : '#475569' }};">Di Bawah Ekspektasi</div>
+                                </div>
+
+                                {{-- Option: Sesuai Ekspektasi --}}
+                                <div wire:click="$set('overallPenilaianHasil', 'sesuai_ekspektasi')" 
+                                     style="flex:1;min-width:180px;cursor:pointer;margin:0;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#10b981' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#ecfdf5' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '0 4px 12px rgba(16,185,129,0.1)' : 'none' }};">
+                                    <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👍</div>
+                                    <div style="font-size:0.85rem;font-weight:700;color:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#065f46' : '#475569' }};">Sesuai Ekspektasi</div>
+                                </div>
+
+                                {{-- Option: Di Atas Ekspektasi --}}
+                                <div wire:click="$set('overallPenilaianHasil', 'di_atas_ekspektasi')" 
+                                     style="flex:1;min-width:180px;cursor:pointer;margin:0;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#3b82f6' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#eff6ff' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '0 4px 12px rgba(59,130,246,0.1)' : 'none' }};">
+                                    <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👍👍</div>
+                                    <div style="font-size:0.85rem;font-weight:700;color:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#1e40af' : '#475569' }};">Di Atas Ekspektasi</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 @if(count($indikators) > 0)
-                    <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex justify-end"
-                         style="background:#f8faff;">
+                    <div style="padding:16px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;background:#f9fafb;">
                         <x-filament::button type="submit" color="primary" icon="heroicon-o-check">
                             Simpan Penilaian Hasil Kerja
                         </x-filament::button>
