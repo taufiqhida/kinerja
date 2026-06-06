@@ -5,12 +5,12 @@
     <title>Hasil Penilaian Kinerja - {{ $pegawai->nama_lengkap }}</title>
     <style>
         @page {
-            margin: 1.8cm 2.0cm;
+            margin: 3.0cm 2.5cm 2.5cm 2.5cm;
         }
-        * {
-            box-sizing: border-box;
+        html, body, div, p, table, tr, td, th, h1, h2, h3, h4, hr, span {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
@@ -51,7 +51,7 @@
         .kop-address, .kop-contact {
             font-size: 8.5px;
             color: #4a5568;
-            margin-top: 1px;
+            margin-top: 2px;
             font-style: italic;
         }
         .kop-line {
@@ -250,7 +250,7 @@
             <div class="kop-title-1">Pemerintah Kota Semarang</div>
             <div class="kop-title-2">Dinas Kesehatan Kota Semarang</div>
             <div class="kop-title-3">Puskesmas Bugangan</div>
-            <div class="kop-address">Jl. Cilosari No. 1, Semarang Timur, Kota Semarang, 50126</div>
+            <div class="kop-address">Jl. Musi Raya No.22, Bugangan, Kec. Semarang Tim., Kota Semarang, Jawa Tengah 50126</div>
             <div class="kop-contact">Telp: (024) 3546061 | Email: puskbug@gmail.com</div>
         </div>
         <hr class="kop-line">
