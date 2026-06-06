@@ -20,7 +20,7 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .kop-surat {
             margin-bottom: 8px;
@@ -82,12 +82,12 @@
             padding: 5px 8px;
             background-color: #ebf4ff;
             border-left: 3px solid #1e3a5f;
-            margin: 18px 0 8px 0;
+            margin: 22px 0 10px 0;
             text-transform: uppercase;
         }
         .info-table {
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border-collapse: collapse;
         }
         .info-table td {
@@ -110,7 +110,7 @@
             border: 1px solid #cbd5e1;
             background-color: #f8fafc;
             border-radius: 6px;
-            margin: 15px 0 20px 0;
+            margin: 20px 0 25px 0;
             width: 100%;
         }
         .summary-grid {
@@ -159,7 +159,7 @@
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             page-break-inside: avoid;
         }
         table.data-table th {
@@ -227,19 +227,6 @@
         }
         .footer-right p {
             margin-bottom: 2px;
-        }
-        .ttd-box {
-            margin-top: 45px;
-        }
-        .ttd-box .nama {
-            font-weight: bold;
-            text-decoration: underline;
-            color: #000;
-        }
-        .ttd-box .nip {
-            font-size: 8.5px;
-            color: #4a5568;
-            margin-top: 2px;
         }
     </style>
 </head>
@@ -406,12 +393,13 @@
             <div class="footer-right">
                 <p>Semarang, {{ $tanggalCetak }}</p>
                 <p style="font-weight: bold; margin-top: 5px;">Atasan Penilai,</p>
-                <div class="ttd-box">
-                    <p class="nama">{{ $pegawai->kepala?->nama_lengkap ?? '___________________' }}</p>
+                <div style="line-height: 1.5;">
+                    <br><br><br><br>
+                    <p style="font-weight: bold; text-decoration: underline; color: #000; display: inline-block;">{{ $pegawai->kepala?->nama_lengkap ?? '___________________' }}</p>
                     @if($pegawai->kepala?->nip)
-                        <p class="nip">NIP. {{ $pegawai->kepala->nip }}</p>
+                        <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIP. {{ $pegawai->kepala->nip }}</p>
                     @else
-                        <p class="nip">NIP. -</p>
+                        <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIP. -</p>
                     @endif
                 </div>
             </div>
