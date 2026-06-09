@@ -27,6 +27,8 @@ class RealisasiKinerja extends Page
     public ?PeriodePenilaian $periodeAktif = null;
     public array $indikators = [];
     public ?string $selectedMonth = null;
+    public int $selectedPeriodeId = 0;
+    public array $periodeOptions = [];
 
     // Form state for adding realisasi (+ optional bukti dukung)
     public ?int $selectedIndikatorId = null;
@@ -70,17 +72,44 @@ class RealisasiKinerja extends Page
         if ($this->selectedMonth === $currentMonthStr) {
             $this->tanggalRealisasi = now()->format('Y-m-d');
         } else {
-            $this->tanggalRealisasi = $this->selectedMonth . '-01';
+            $this->tanggalRealisasi = $this->selectedMonth ? $this->selectedMonth . '-01' : '';
         }
+        $this->loadData();
+    }
+
+    public function updatedSelectedPeriodeId(): void
+    {
+        $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
+        if ($this->periodeAktif) {
+            $months = $this->getMonthsInPeriod();
+            $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
+        } else {
+            $this->selectedMonth = null;
+        }
+
+        $currentMonthStr = now()->format('Y-m');
+        if ($this->selectedMonth === $currentMonthStr) {
+            $this->tanggalRealisasi = now()->format('Y-m-d');
+        } else {
+            $this->tanggalRealisasi = $this->selectedMonth ? $this->selectedMonth . '-01' : '';
+        }
+
         $this->loadData();
     }
 
     public function mount(): void
     {
         $this->pegawai = Pegawai::where('user_id', auth()->id())->first();
+        
+        $this->periodeOptions = PeriodePenilaian::orderBy('tahun', 'desc')
+            ->orderBy('tanggal_mulai', 'desc')
+            ->pluck('nama_periode', 'id')
+            ->toArray();
+
         $this->periodeAktif = PeriodePenilaian::getActive();
         
         if ($this->periodeAktif) {
+            $this->selectedPeriodeId = $this->periodeAktif->id;
             $months = $this->getMonthsInPeriod();
             $currentMonthStr = now()->format('Y-m');
             $hasCurrentMonth = collect($months)->contains('value', $currentMonthStr);

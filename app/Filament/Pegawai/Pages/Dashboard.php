@@ -22,6 +22,8 @@ class Dashboard extends Page
     public float $rataCapaian = 0;
     public bool $adaRealisasiKosong = false;
     public ?string $selectedMonth = null;
+    public int $selectedPeriodeId = 0;
+    public array $periodeOptions = [];
 
     public function getMonthsInPeriod(): array
     {
@@ -51,14 +53,33 @@ class Dashboard extends Page
         $this->calculateCapaian();
     }
 
+    public function updatedSelectedPeriodeId(): void
+    {
+        $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
+        if ($this->periodeAktif) {
+            $months = $this->getMonthsInPeriod();
+            $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
+        } else {
+            $this->selectedMonth = null;
+        }
+        $this->calculateCapaian();
+    }
+
     public function mount(): void
     {
         $this->pegawai = Pegawai::where('user_id', auth()->id())
             ->with(['jabatan', 'unitKerja', 'kepala'])
             ->first();
+        
+        $this->periodeOptions = PeriodePenilaian::orderBy('tahun', 'desc')
+            ->orderBy('tanggal_mulai', 'desc')
+            ->pluck('nama_periode', 'id')
+            ->toArray();
+
         $this->periodeAktif = PeriodePenilaian::getActive();
 
         if ($this->periodeAktif) {
+            $this->selectedPeriodeId = $this->periodeAktif->id;
             $months = $this->getMonthsInPeriod();
             $currentMonthStr = now()->format('Y-m');
             $hasCurrentMonth = collect($months)->contains('value', $currentMonthStr);

@@ -24,7 +24,7 @@
 
     @if($periodeAktif)
         {{-- Month Selector Dropdown --}}
-        <div class="rounded-2xl p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        <div class="rounded-2xl p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
              style="background: linear-gradient(135deg, #f8fafd, #ffffff); border: 1px solid #cbd5e1;">
             <div class="flex items-center gap-3">
                 <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 10px; display: inline-flex; align-items: center; justify-content: center;">
@@ -37,20 +37,40 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tampilkan kalkulasi capaian kinerja pada periode bulan yang dipilih.</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <label for="month-select" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Periode:</label>
-                <div class="relative" style="display: inline-block;">
-                    <select id="month-select" wire:model.live="selectedMonth" 
-                            style="min-width: 200px; padding: 10px 36px 10px 16px; font-size: 0.875rem; font-weight: 600; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; color: #1e293b; appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.25;"
-                            class="focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none">
-                        @foreach($this->getMonthsInPeriod() as $m)
-                            <option value="{{ $m['value'] }}">{{ $m['label'] }}</option>
-                        @endforeach
-                    </select>
-                    <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #64748b; display: flex; align-items: center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <label for="period-select" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Periode:</label>
+                    <div class="relative" style="display: inline-block;">
+                        <select id="period-select" wire:model.live="selectedPeriodeId" 
+                                style="min-width: 160px; padding: 10px 36px 10px 16px; font-size: 0.875rem; font-weight: 600; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; color: #1e293b; appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.25;"
+                                class="focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none">
+                            @foreach($periodeOptions as $id => $nama)
+                                <option value="{{ $id }}">{{ $nama }}</option>
+                            @endforeach
+                        </select>
+                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #64748b; display: flex; align-items: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label for="month-select" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Bulan:</label>
+                    <div class="relative" style="display: inline-block;">
+                        <select id="month-select" wire:model.live="selectedMonth" 
+                                style="min-width: 160px; padding: 10px 36px 10px 16px; font-size: 0.875rem; font-weight: 600; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; color: #1e293b; appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.25;"
+                                class="focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none">
+                            @foreach($this->getMonthsInPeriod() as $m)
+                                <option value="{{ $m['value'] }}">{{ $m['label'] }}</option>
+                            @endforeach
+                        </select>
+                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #64748b; display: flex; align-items: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
