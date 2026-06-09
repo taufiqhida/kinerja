@@ -154,4 +154,21 @@ class UnifiedLoginAndRedirectsTest extends TestCase
         $responseAdmin_B = $this->get(route('export.hasil-penilaian', ['pegawaiId' => $pegawaiB->id]));
         $responseAdmin_B->assertStatus(200);
     }
+
+    /**
+     * Test that an admin can access the admin panel.
+     */
+    public function test_admin_can_access_admin_panel(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin User Spec',
+            'email' => 'adminspec@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin');
+        $response->assertStatus(200);
+    }
 }
