@@ -21,47 +21,12 @@ class Dashboard extends Page
     public int $jumlahIndikatorBelumAda = 0;
     public float $rataCapaian = 0;
     public bool $adaRealisasiKosong = false;
-    public ?string $selectedMonth = null;
     public int $selectedPeriodeId = 0;
     public array $periodeOptions = [];
-
-    public function getMonthsInPeriod(): array
-    {
-        if (!$this->periodeAktif) {
-            return [];
-        }
-
-        $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
-        $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
-
-        $months = [];
-        $current = $start->copy()->startOfMonth();
-
-        while ($current->lessThanOrEqualTo($end)) {
-            $months[] = [
-                'value' => $current->format('Y-m'),
-                'label' => $current->translatedFormat('F Y'),
-            ];
-            $current->addMonth();
-        }
-
-        return $months;
-    }
-
-    public function updatedSelectedMonth(): void
-    {
-        $this->calculateCapaian();
-    }
 
     public function updatedSelectedPeriodeId(): void
     {
         $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
-        if ($this->periodeAktif) {
-            $months = $this->getMonthsInPeriod();
-            $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
-        } else {
-            $this->selectedMonth = null;
-        }
         $this->calculateCapaian();
     }
 
@@ -80,14 +45,6 @@ class Dashboard extends Page
 
         if ($this->periodeAktif) {
             $this->selectedPeriodeId = $this->periodeAktif->id;
-            $months = $this->getMonthsInPeriod();
-            $currentMonthStr = now()->format('Y-m');
-            $hasCurrentMonth = collect($months)->contains('value', $currentMonthStr);
-            if ($hasCurrentMonth) {
-                $this->selectedMonth = $currentMonthStr;
-            } else {
-                $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
-            }
         }
 
         $this->calculateCapaian();
@@ -109,17 +66,7 @@ class Dashboard extends Page
             if ($this->jumlahIndikator > 0) {
                 $totalCapaian = 0;
                 foreach ($indikators as $ind) {
-                    $totalRealisasi = 0;
-                    if ($this->selectedMonth) {
-                        $startOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->startOfMonth()->toDateString();
-                        $endOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->endOfMonth()->toDateString();
-                        $totalRealisasi = $ind->realisasiKinerja()
-                            ->whereBetween('tanggal_realisasi', [$startOfMonth, $endOfMonth])
-                            ->sum('jumlah_realisasi');
-                    } else {
-                        $totalRealisasi = $ind->total_realisasi;
-                    }
-
+                    $totalRealisasi = $ind->total_realisasi;
                     $target = $ind->target_bulanan;
                     $capaian = $target > 0 ? ($totalRealisasi / $target) * 100 : 0;
                     $totalCapaian += $capaian;

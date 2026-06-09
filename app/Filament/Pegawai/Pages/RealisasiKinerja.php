@@ -26,7 +26,6 @@ class RealisasiKinerja extends Page
     public ?Pegawai $pegawai = null;
     public ?PeriodePenilaian $periodeAktif = null;
     public array $indikators = [];
-    public ?string $selectedMonth = null;
     public int $selectedPeriodeId = 0;
     public array $periodeOptions = [];
 
@@ -43,55 +42,20 @@ class RealisasiKinerja extends Page
     public array $penilaianPerilaku = [];
     public bool $sudahDinilai = false;
 
-    public function getMonthsInPeriod(): array
-    {
-        if (!$this->periodeAktif) {
-            return [];
-        }
-
-        $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
-        $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
-
-        $months = [];
-        $current = $start->copy()->startOfMonth();
-
-        while ($current->lessThanOrEqualTo($end)) {
-            $months[] = [
-                'value' => $current->format('Y-m'),
-                'label' => $current->translatedFormat('F Y'),
-            ];
-            $current->addMonth();
-        }
-
-        return $months;
-    }
-
-    public function updatedSelectedMonth(): void
-    {
-        $currentMonthStr = now()->format('Y-m');
-        if ($this->selectedMonth === $currentMonthStr) {
-            $this->tanggalRealisasi = now()->format('Y-m-d');
-        } else {
-            $this->tanggalRealisasi = $this->selectedMonth ? $this->selectedMonth . '-01' : '';
-        }
-        $this->loadData();
-    }
-
     public function updatedSelectedPeriodeId(): void
     {
         $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
         if ($this->periodeAktif) {
-            $months = $this->getMonthsInPeriod();
-            $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
+            $today = now();
+            $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
+            $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
+            if ($today->between($start, $end)) {
+                $this->tanggalRealisasi = $today->toDateString();
+            } else {
+                $this->tanggalRealisasi = $start->toDateString();
+            }
         } else {
-            $this->selectedMonth = null;
-        }
-
-        $currentMonthStr = now()->format('Y-m');
-        if ($this->selectedMonth === $currentMonthStr) {
-            $this->tanggalRealisasi = now()->format('Y-m-d');
-        } else {
-            $this->tanggalRealisasi = $this->selectedMonth ? $this->selectedMonth . '-01' : '';
+            $this->tanggalRealisasi = '';
         }
 
         $this->loadData();
@@ -110,21 +74,14 @@ class RealisasiKinerja extends Page
         
         if ($this->periodeAktif) {
             $this->selectedPeriodeId = $this->periodeAktif->id;
-            $months = $this->getMonthsInPeriod();
-            $currentMonthStr = now()->format('Y-m');
-            $hasCurrentMonth = collect($months)->contains('value', $currentMonthStr);
-            if ($hasCurrentMonth) {
-                $this->selectedMonth = $currentMonthStr;
+            $today = now();
+            $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
+            $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
+            if ($today->between($start, $end)) {
+                $this->tanggalRealisasi = $today->toDateString();
             } else {
-                $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
+                $this->tanggalRealisasi = $start->toDateString();
             }
-        }
-        
-        $currentMonthStr = now()->format('Y-m');
-        if ($this->selectedMonth === $currentMonthStr) {
-            $this->tanggalRealisasi = now()->format('Y-m-d');
-        } else {
-            $this->tanggalRealisasi = $this->selectedMonth ? $this->selectedMonth . '-01' : '';
         }
         
         $this->loadData();
@@ -141,11 +98,6 @@ class RealisasiKinerja extends Page
             ->where('periode_id', $this->periodeAktif->id)
             ->with([
                 'realisasiKinerja' => function ($q) {
-                    if ($this->selectedMonth) {
-                        $startOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->startOfMonth()->toDateString();
-                        $endOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->endOfMonth()->toDateString();
-                        $q->whereBetween('tanggal_realisasi', [$startOfMonth, $endOfMonth]);
-                    }
                     $q->orderByDesc('tanggal_realisasi');
                 },
                 'buktiDukung',
@@ -194,11 +146,17 @@ class RealisasiKinerja extends Page
         $this->jumlahRealisasi = 0;
         $this->keterangan = '';
         
-        $currentMonthStr = now()->format('Y-m');
-        if ($this->selectedMonth === $currentMonthStr) {
-            $this->tanggalRealisasi = now()->format('Y-m-d');
+        if ($this->periodeAktif) {
+            $today = now();
+            $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
+            $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
+            if ($today->between($start, $end)) {
+                $this->tanggalRealisasi = $today->toDateString();
+            } else {
+                $this->tanggalRealisasi = $start->toDateString();
+            }
         } else {
-            $this->tanggalRealisasi = $this->selectedMonth ? $this->selectedMonth . '-01' : '';
+            $this->tanggalRealisasi = '';
         }
         
         $this->judulBukti = '';
@@ -207,13 +165,17 @@ class RealisasiKinerja extends Page
 
     public function simpanRealisasi(): void
     {
-        $startOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->startOfMonth()->toDateString();
-        $endOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->endOfMonth()->toDateString();
+        if (!$this->periodeAktif) {
+            return;
+        }
+
+        $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai)->toDateString();
+        $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai)->toDateString();
 
         $rules = [
             'selectedIndikatorId' => 'required|exists:indikator_kinerja,id',
             'jumlahRealisasi' => 'required|integer|min:1',
-            'tanggalRealisasi' => "required|date|after_or_equal:{$startOfMonth}|before_or_equal:{$endOfMonth}",
+            'tanggalRealisasi' => "required|date|after_or_equal:{$start}|before_or_equal:{$end}",
         ];
 
         // Validate bukti fields only if at least one is filled
@@ -279,7 +241,7 @@ class RealisasiKinerja extends Page
     public function exportPdf(): mixed
     {
         return $this->redirect(route('export.hasil-penilaian', [
-            'month' => $this->selectedMonth,
+            'periode_id' => $this->selectedPeriodeId,
         ]));
     }
 }

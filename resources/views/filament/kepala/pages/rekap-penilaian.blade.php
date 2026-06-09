@@ -67,7 +67,7 @@
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-center">
-                                <a href="{{ route('export.hasil-penilaian', $item['pegawai_id']) }}"
+                                <a href="{{ route('export.hasil-penilaian', ['pegawaiId' => $item['pegawai_id'], 'periode_id' => $selectedPeriodeId]) }}"
                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-success-50 text-success-700 hover:bg-success-100 dark:bg-success-500/10 dark:text-success-400 dark:hover:bg-success-500/20 transition-colors"
                                    target="_blank">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">

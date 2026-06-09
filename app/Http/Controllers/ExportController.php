@@ -29,39 +29,29 @@ class ExportController extends Controller
             abort(404);
         }
 
-        $periode = PeriodePenilaian::getActive();
+        $periodeId = $request->query('periode_id');
+        if ($periodeId) {
+            $periode = PeriodePenilaian::find($periodeId);
+        } else {
+            $periode = PeriodePenilaian::getActive();
+        }
 
         if (! $periode) {
-            return back()->with('error', 'Tidak ada periode penilaian aktif.');
+            return back()->with('error', 'Tidak ada periode penilaian.');
         }
 
-        // Get month parameter
-        $selectedMonth = $request->query('month');
         $displayPeriodeNama = $periode->nama_periode;
         $displayPeriodeRange = \Carbon\Carbon::parse($periode->tanggal_mulai)->translatedFormat('d F Y') . ' s/d ' . \Carbon\Carbon::parse($periode->tanggal_selesai)->translatedFormat('d F Y');
-
-        if ($selectedMonth) {
-            $startOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->startOfMonth();
-            $endOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->endOfMonth();
-            
-            $displayPeriodeNama = $startOfMonth->translatedFormat('F Y');
-            $displayPeriodeRange = $startOfMonth->translatedFormat('d F Y') . ' s/d ' . $endOfMonth->translatedFormat('d F Y');
-        }
 
         // Hitung nilai akhir
         $service = new PerhitunganNilaiService();
         $nilaiAkhir = $service->hitungNilaiAkhir($pegawai, $periode);
 
-        // Load indikator kinerja + realisasi (filtered by month if present)
+        // Load indikator kinerja + realisasi
         $indikators = IndikatorKinerja::where('pegawai_id', $pegawai->id)
             ->where('periode_id', $periode->id)
             ->with([
-                'realisasiKinerja' => function ($q) use ($selectedMonth) {
-                    if ($selectedMonth) {
-                        $startOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->startOfMonth()->toDateString();
-                        $endOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->endOfMonth()->toDateString();
-                        $q->whereBetween('tanggal_realisasi', [$startOfMonth, $endOfMonth]);
-                    }
+                'realisasiKinerja' => function ($q) {
                     $q->orderByDesc('tanggal_realisasi');
                 },
                 'penilaianHasil'

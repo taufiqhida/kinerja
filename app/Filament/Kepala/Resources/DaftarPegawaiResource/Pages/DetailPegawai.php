@@ -37,33 +37,12 @@ class DetailPegawai extends Page implements HasForms
     public array $penilaianPerilaku = [];
     public array $nilaiAkhir = [];
     public string $overallPenilaianHasil = '';
-    public ?string $selectedMonth = null;
+    public int $selectedPeriodeId = 0;
+    public array $periodeOptions = [];
 
-    public function getMonthsInPeriod(): array
+    public function updatedSelectedPeriodeId(): void
     {
-        if (!$this->periodeAktif) {
-            return [];
-        }
-
-        $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
-        $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
-
-        $months = [];
-        $current = $start->copy()->startOfMonth();
-
-        while ($current->lessThanOrEqualTo($end)) {
-            $months[] = [
-                'value' => $current->format('Y-m'),
-                'label' => $current->translatedFormat('F Y'),
-            ];
-            $current->addMonth();
-        }
-
-        return $months;
-    }
-
-    public function updatedSelectedMonth(): void
-    {
+        $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
         $this->loadData();
     }
 
@@ -72,17 +51,16 @@ class DetailPegawai extends Page implements HasForms
         $record->load(['jabatan', 'unitKerja', 'indikatorKinerja.realisasiKinerja', 'indikatorKinerja.buktiDukung']);
         $this->record = $record;
         $this->kepala = Kepala::where('user_id', auth()->id())->first();
+        
+        $this->periodeOptions = PeriodePenilaian::orderBy('tahun', 'desc')
+            ->orderBy('tanggal_mulai', 'desc')
+            ->pluck('nama_periode', 'id')
+            ->toArray();
+
         $this->periodeAktif = PeriodePenilaian::getActive();
 
         if ($this->periodeAktif) {
-            $months = $this->getMonthsInPeriod();
-            $currentMonthStr = now()->format('Y-m');
-            $hasCurrentMonth = collect($months)->contains('value', $currentMonthStr);
-            if ($hasCurrentMonth) {
-                $this->selectedMonth = $currentMonthStr;
-            } else {
-                $this->selectedMonth = !empty($months) ? $months[0]['value'] : null;
-            }
+            $this->selectedPeriodeId = $this->periodeAktif->id;
         }
 
         $this->loadData();
@@ -99,11 +77,6 @@ class DetailPegawai extends Page implements HasForms
             ->where('periode_id', $this->periodeAktif->id)
             ->with([
                 'realisasiKinerja' => function ($q) {
-                    if ($this->selectedMonth) {
-                        $startOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->startOfMonth()->toDateString();
-                        $endOfMonth = \Carbon\Carbon::parse($this->selectedMonth . '-01')->endOfMonth()->toDateString();
-                        $q->whereBetween('tanggal_realisasi', [$startOfMonth, $endOfMonth]);
-                    }
                     $q->orderByDesc('tanggal_realisasi');
                 },
                 'buktiDukung',

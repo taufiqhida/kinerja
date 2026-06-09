@@ -5,7 +5,7 @@
         <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">Detail penilaian kinerja pegawai</p>
         </div>
-        <a href="{{ route('export.hasil-penilaian', ['pegawaiId' => $record->id, 'month' => $selectedMonth]) }}"
+        <a href="{{ route('export.hasil-penilaian', ['pegawaiId' => $record->id, 'periode_id' => $selectedPeriodeId]) }}"
            target="_blank"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm"
            style="background:linear-gradient(135deg,#059669,#10b981);color:white;text-decoration:none;">
@@ -63,7 +63,7 @@
 
     @if($periodeAktif)
 
-        {{-- Month Selector Dropdown --}}
+        {{-- Period Selector Dropdown --}}
         <div class="rounded-2xl p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
              style="background: linear-gradient(135deg, #f8fafd, #ffffff); border: 1px solid #cbd5e1;">
             <div class="flex items-center gap-3">
@@ -78,13 +78,13 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <label for="month-select" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Periode:</label>
+                <label for="period-select" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Periode:</label>
                 <div class="relative" style="display: inline-block;">
-                    <select id="month-select" wire:model.live="selectedMonth" 
+                    <select id="period-select" wire:model.live="selectedPeriodeId" 
                             style="min-width: 200px; padding: 10px 36px 10px 16px; font-size: 0.875rem; font-weight: 600; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; color: #1e293b; appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.25;"
                             class="focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none">
-                        @foreach($this->getMonthsInPeriod() as $m)
-                            <option value="{{ $m['value'] }}">{{ $m['label'] }}</option>
+                        @foreach($periodeOptions as $id => $nama)
+                            <option value="{{ $id }}">{{ $nama }}</option>
                         @endforeach
                     </select>
                     <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #64748b; display: flex; align-items: center;">
