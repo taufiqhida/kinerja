@@ -171,4 +171,27 @@ class UnifiedLoginAndRedirectsTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin');
         $response->assertStatus(200);
     }
+
+    /**
+     * Test that if a logged-in pegawai visits /admin/login, they are automatically logged out and shown the login page.
+     */
+    public function test_logged_in_pegawai_visiting_admin_login_is_logged_out(): void
+    {
+        $pegawaiUser = User::create([
+            'name' => 'Pegawai Test User',
+            'email' => 'pegawaitest@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'pegawai',
+            'is_active' => true,
+        ]);
+
+        // Access /admin/login as logged-in pegawai
+        $response = $this->actingAs($pegawaiUser)->get('/admin/login');
+
+        // It should redirect to /admin/login (meaning they got logged out and redirected)
+        $response->assertRedirect('/admin/login');
+
+        // Assert they are logged out
+        $this->assertNull(auth()->user());
+    }
 }

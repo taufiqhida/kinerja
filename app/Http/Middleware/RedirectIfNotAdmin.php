@@ -16,8 +16,23 @@ class RedirectIfNotAdmin
     {
         $user = auth()->user();
 
-        // Izinkan halaman login admin untuk semua (termasuk guest)
-        if ($request->is('admin/login') || $request->is('livewire/*')) {
+        // Jika user mengunjungi halaman login admin
+        if ($request->is('admin/login')) {
+            if ($user) {
+                if ($user->role === 'admin') {
+                    return redirect()->to('/admin');
+                } else {
+                    auth()->logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    return redirect()->to('/admin/login');
+                }
+            }
+            return $next($request);
+        }
+
+        // Izinkan request livewire
+        if ($request->is('livewire/*')) {
             return $next($request);
         }
 
