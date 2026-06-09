@@ -6,13 +6,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
             </svg>
             <p style="font-size:0.875rem;font-weight:500;color:#854d0e;">
-                Anda belum memiliki indikator kinerja untuk periode aktif. Silakan tambahkan melalui menu <strong>Indikator Kinerja</strong>.
+                Anda belum memiliki indikator kinerja untuk periode ini. Silakan tambahkan melalui menu <strong>Indikator Kinerja</strong>.
             </p>
         </div>
     @endif
 
     @if($adaRealisasiKosong)
-        <div class="rounded-xl p-4" style="background-color:#eff6ff;display:flex;align-items:center;gap:12px;">
+        <div class="rounded-xl p-4 mb-4" style="background-color:#eff6ff;display:flex;align-items:center;gap:12px;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#3b82f6" style="width:24px;height:24px;flex-shrink:0;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
             </svg>
@@ -22,27 +22,40 @@
         </div>
     @endif
 
-    {{-- Periode Aktif Banner --}}
-    <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
-        <div style="background:linear-gradient(135deg,#4f46e5,#0ea5e9);padding:20px 24px;display:flex;align-items:center;gap:16px;">
-            <div style="width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fff" style="width:24px;height:24px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                </svg>
+    @if($periodeAktif)
+        {{-- Month Selector Dropdown --}}
+        <div class="rounded-2xl p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+             style="background: linear-gradient(135deg, #f8fafd, #ffffff); border: 1px solid #cbd5e1;">
+            <div class="flex items-center gap-3">
+                <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 10px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2563eb" style="width: 20px; height: 20px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 dark:text-white text-base">Pilih Periode Penilaian</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tampilkan kalkulasi capaian kinerja pada periode bulan yang dipilih.</p>
+                </div>
             </div>
-            <div>
-                <p style="font-size:0.8rem;color:rgba(255,255,255,0.7);font-weight:500;">Periode Penilaian Aktif</p>
-                <p style="font-size:1.25rem;font-weight:700;color:#fff;">
-                    {{ $periodeAktif?->nama_periode ?? 'Tidak ada periode aktif' }}
-                </p>
-                @if($periodeAktif)
-                    <p style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:2px;">
-                        {{ $periodeAktif->tanggal_mulai->format('d M Y') }} — {{ $periodeAktif->tanggal_selesai->format('d M Y') }}
-                    </p>
-                @endif
+            <div class="flex items-center gap-3">
+                <label for="month-select" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Periode:</label>
+                <div class="relative" style="display: inline-block;">
+                    <select id="month-select" wire:model.live="selectedMonth" 
+                            style="min-width: 200px; padding: 10px 36px 10px 16px; font-size: 0.875rem; font-weight: 600; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; color: #1e293b; appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.25;"
+                            class="focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none">
+                        @foreach($this->getMonthsInPeriod() as $m)
+                            <option value="{{ $m['value'] }}">{{ $m['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #64748b; display: flex; align-items: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
     {{-- Stat Cards --}}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">

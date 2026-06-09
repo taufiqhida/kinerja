@@ -35,14 +35,37 @@ class ExportController extends Controller
             return back()->with('error', 'Tidak ada periode penilaian aktif.');
         }
 
+        // Get month parameter
+        $selectedMonth = $request->query('month');
+        $displayPeriodeNama = $periode->nama_periode;
+        $displayPeriodeRange = \Carbon\Carbon::parse($periode->tanggal_mulai)->translatedFormat('d F Y') . ' s/d ' . \Carbon\Carbon::parse($periode->tanggal_selesai)->translatedFormat('d F Y');
+
+        if ($selectedMonth) {
+            $startOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->startOfMonth();
+            $endOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->endOfMonth();
+            
+            $displayPeriodeNama = $startOfMonth->translatedFormat('F Y');
+            $displayPeriodeRange = $startOfMonth->translatedFormat('d F Y') . ' s/d ' . $endOfMonth->translatedFormat('d F Y');
+        }
+
         // Hitung nilai akhir
         $service = new PerhitunganNilaiService();
         $nilaiAkhir = $service->hitungNilaiAkhir($pegawai, $periode);
 
-        // Load indikator kinerja + realisasi
+        // Load indikator kinerja + realisasi (filtered by month if present)
         $indikators = IndikatorKinerja::where('pegawai_id', $pegawai->id)
             ->where('periode_id', $periode->id)
-            ->with(['realisasiKinerja', 'penilaianHasil'])
+            ->with([
+                'realisasiKinerja' => function ($q) use ($selectedMonth) {
+                    if ($selectedMonth) {
+                        $startOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->startOfMonth()->toDateString();
+                        $endOfMonth = \Carbon\Carbon::parse($selectedMonth . '-01')->endOfMonth()->toDateString();
+                        $q->whereBetween('tanggal_realisasi', [$startOfMonth, $endOfMonth]);
+                    }
+                    $q->orderByDesc('tanggal_realisasi');
+                },
+                'penilaianHasil'
+            ])
             ->get();
 
         // Load penilaian perilaku
@@ -66,16 +89,18 @@ class ExportController extends Controller
         $data = [
             'pegawai' => $pegawai,
             'periode' => $periode,
+            'displayPeriodeNama' => $displayPeriodeNama,
+            'displayPeriodeRange' => $displayPeriodeRange,
             'nilaiAkhir' => $nilaiAkhir,
             'indikators' => $indikators,
             'penilaianPerilaku' => $penilaianPerilaku,
-            'tanggalCetak' => now()->format('d F Y'),
+            'tanggalCetak' => now()->translatedFormat('d F Y'),
         ];
 
         $pdf = Pdf::loadView('exports.hasil-penilaian', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        $filename = 'Hasil_Penilaian_' . str_replace(' ', '_', $pegawai->nama_lengkap) . '_' . $periode->nama_periode . '.pdf';
+        $filename = 'Hasil_Penilaian_' . str_replace(' ', '_', $pegawai->nama_lengkap) . '_' . str_replace(' ', '_', $displayPeriodeNama) . '.pdf';
 
         return $pdf->download($filename);
     }

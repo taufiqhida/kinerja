@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Middleware\RedirectIfNotAdmin;
 use Filament\Http\Middleware\Authenticate;
@@ -29,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->profile(EditProfile::class)
             ->brandName('eKinerja Puskesmas Bugangan')
             ->colors([
                 'primary' => Color::Indigo,

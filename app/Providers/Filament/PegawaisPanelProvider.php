@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -24,6 +25,7 @@ class PegawaisPanelProvider extends PanelProvider
             ->id('pegawais')
             ->path('pegawai')
             ->login()
+            ->profile(EditProfile::class)
             ->brandName('eKinerja Pegawai')
             ->colors([
                 'primary' => Color::Sky,

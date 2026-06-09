@@ -4,51 +4,8 @@
 
 <x-filament-panels::page>
 
-    {{-- ====== HERO / PERIODE AKTIF ====== --}}
-    <div class="relative overflow-hidden rounded-2xl mb-1"
-         style="background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%); min-height: 130px;">
-        {{-- Decorative blobs --}}
-        <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
-        <div style="position:absolute;bottom:-30px;left:60px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
-
-        <div class="relative p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div style="background:rgba(255,255,255,0.15);border-radius:14px;padding:12px;flex-shrink:0;backdrop-filter:blur(8px);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" style="width:28px;height:28px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                </div>
-                <div>
-                    <p style="color:rgba(255,255,255,0.7);font-size:0.75rem;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Periode Aktif</p>
-                    <p style="color:white;font-size:1.4rem;font-weight:700;line-height:1.2;">
-                        {{ $periodeAktif?->nama_periode ?? 'Tidak ada periode aktif' }}
-                    </p>
-                    @if($periodeAktif)
-                        <p style="color:rgba(255,255,255,0.65);font-size:0.8rem;margin-top:3px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;display:inline;margin-right:3px;vertical-align:middle;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                            {{ $periodeAktif->tanggal_mulai->format('d M Y') }} &ndash; {{ $periodeAktif->tanggal_selesai->format('d M Y') }}
-                        </p>
-                    @endif
-                </div>
-            </div>
-            @if($periodeAktif)
-                <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px 18px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);text-align:center;flex-shrink:0;">
-                    <p style="color:rgba(255,255,255,0.7);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Progress Penilaian</p>
-                    <p style="color:white;font-size:1.5rem;font-weight:700;">
-                        {{ $jumlahBawahan > 0 ? round(($jumlahDinilai / $jumlahBawahan) * 100) : 0 }}%
-                    </p>
-                    <div style="width:100px;height:4px;background:rgba(255,255,255,0.25);border-radius:9999px;margin:4px auto 0;">
-                        <div style="height:4px;border-radius:9999px;background:#4ade80;width:{{ $jumlahBawahan > 0 ? min(round(($jumlahDinilai / $jumlahBawahan) * 100), 100) : 0 }}%;"></div>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
-
     {{-- ====== STATS CARDS ====== --}}
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
 
         {{-- Jumlah Bawahan --}}
         <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
@@ -96,6 +53,25 @@
                 </div>
             </div>
             <div style="height:3px;background:linear-gradient(90deg,#f59e0b,#fcd34d);"></div>
+        </div>
+
+        {{-- Progress Penilaian --}}
+        <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
+            <div class="p-5 flex items-center gap-4">
+                <div style="background:linear-gradient(135deg,#faf5ff,#e879f9);border-radius:12px;padding:12px;flex-shrink:0;opacity:0.95;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#a21caf" style="width:24px;height:24px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21a7.5 7.5 0 0 0-7.5-7.5v7.5Z" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Progress Penilaian</p>
+                    <p class="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+                        {{ $jumlahBawahan > 0 ? round(($jumlahDinilai / $jumlahBawahan) * 100) : 0 }}%
+                    </p>
+                </div>
+            </div>
+            <div style="height:3px;background:linear-gradient(90deg,#c084fc,#a855f7);"></div>
         </div>
     </div>
 

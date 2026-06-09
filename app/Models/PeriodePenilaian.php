@@ -43,4 +43,34 @@ class PeriodePenilaian extends Model
     {
         return static::where('is_active', true)->first();
     }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $model) {
+            if ($model->is_active) {
+                $query = static::query();
+                if ($model->exists) {
+                    $query->where('id', '!=', $model->id);
+                }
+                $query->update(['is_active' => false]);
+            } else {
+                $query = static::where('is_active', true);
+                if ($model->exists) {
+                    $query->where('id', '!=', $model->id);
+                }
+                if ($query->count() === 0) {
+                    $model->is_active = true;
+                }
+            }
+        });
+
+        static::deleted(function (self $model) {
+            if ($model->is_active) {
+                $latest = static::latest()->first();
+                if ($latest) {
+                    $latest->update(['is_active' => true]);
+                }
+            }
+        });
+    }
 }

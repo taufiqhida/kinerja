@@ -40,6 +40,10 @@ class UserResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('no_hp')
+                            ->label('No. HP / Telepon')
+                            ->maxLength(20)
+                            ->nullable(),
                         Forms\Components\TextInput::make('password')
                             ->password()
                             ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
@@ -72,6 +76,10 @@ class UserResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('no_hp')
+                    ->label('No. HP')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('role')

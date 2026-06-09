@@ -251,7 +251,7 @@
             </div>
             <hr class="kop-line">
             <h3 class="doc-title">Laporan Hasil Penilaian Kinerja Pegawai</h3>
-            <p class="doc-subtitle">Periode Penilaian: {{ $periode->nama_periode }}</p>
+            <p class="doc-subtitle">Periode Penilaian: {{ $displayPeriodeNama }}</p>
         </div>
 
         {{-- Data Pegawai --}}
@@ -273,7 +273,7 @@
                 <td class="label">Pangkat/Golongan</td>
                 <td class="value">: {{ $pegawai->pangkat_golongan ?? '-' }}</td>
                 <td class="label">Periode</td>
-                <td class="value">: {{ $periode->nama_periode }}</td>
+                <td class="value">: {{ $displayPeriodeRange }}</td>
             </tr>
             <tr>
                 <td class="label">Atasan Penilai</td>
@@ -394,25 +394,30 @@
 
         {{-- Footer / Tanda Tangan --}}
         <div class="footer">
-            <div class="footer-grid">
-                <div class="footer-left">
-                    <p style="font-style: italic; color: #718096; margin-bottom: 4px;">Dicetak otomatis dari Sistem eKinerja Puskesmas Bugangan</p>
-                    <p>Tanggal Cetak: {{ $tanggalCetak }}</p>
-                </div>
-                <div class="footer-right">
-                    <p>Semarang, {{ $tanggalCetak }}</p>
-                    <p style="font-weight: bold; margin-top: 5px;">Atasan Penilai,</p>
-                    <div style="line-height: 1.5;">
-                        <br><br><br>
-                        <p style="font-weight: bold; text-decoration: underline; color: #000; display: inline-block;">{{ $pegawai->kepala?->nama_lengkap ?? '___________________' }}</p>
+            <div style="font-style: italic; color: #718096; margin-bottom: 15px; font-size: 7.5px;">
+                Dicetak otomatis dari Sistem eKinerja Puskesmas Bugangan &bull; Tanggal Cetak: {{ $tanggalCetak }}
+            </div>
+            <table style="width: 100%; border: none; font-size: 9px; line-height: 1.5; background-color: transparent;">
+                <tr style="background-color: transparent;">
+                    <td style="width: 50%; text-align: center; border: none; padding: 0; vertical-align: top; background-color: transparent;">
+                        <p style="font-weight: bold;">Pegawai Yang Dinilai,</p>
+                        <br><br><br><br>
+                        <p style="font-weight: bold; text-decoration: underline; color: #000;">{{ $pegawai->nama_lengkap }}</p>
+                        <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIK. {{ $pegawai->nik }}</p>
+                    </td>
+                    <td style="width: 50%; text-align: center; border: none; padding: 0; vertical-align: top; background-color: transparent;">
+                        <p>Semarang, {{ $tanggalCetak }}</p>
+                        <p style="font-weight: bold;">Atasan Penilai,</p>
+                        <br><br><br><br>
+                        <p style="font-weight: bold; text-decoration: underline; color: #000;">{{ $pegawai->kepala?->nama_lengkap ?? '___________________' }}</p>
                         @if($pegawai->kepala?->nip)
                             <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIP. {{ $pegawai->kepala->nip }}</p>
                         @else
                             <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIP. -</p>
                         @endif
-                    </div>
-                </div>
-            </div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </body>
