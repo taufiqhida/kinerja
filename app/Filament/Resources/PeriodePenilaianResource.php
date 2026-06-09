@@ -29,8 +29,7 @@ class PeriodePenilaianResource extends Resource
                 Forms\Components\DatePicker::make('tanggal_selesai')->label('Tanggal Selesai')->required()->native(false)->afterOrEqual('tanggal_mulai'),
                 Forms\Components\Toggle::make('is_active')
                     ->label('Periode Aktif')
-                    ->helperText('Hanya satu periode yang bisa aktif.')
-                    ->disabled(fn (?PeriodePenilaian $record): bool => $record?->is_active ?? false)
+                    ->helperText('Tentukan apakah periode ini aktif atau tidak.')
                     ->dehydrated(),
             ])->columns(2),
         ]);
@@ -49,14 +48,11 @@ class PeriodePenilaianResource extends Resource
             ->actions([
                 Actions\EditAction::make(),
                 Actions\Action::make('toggleActive')
-                    ->label('Aktifkan')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
+                    ->label(fn (PeriodePenilaian $record): string => $record->is_active ? 'Nonaktifkan' : 'Aktifkan')
+                    ->icon(fn (PeriodePenilaian $record): string => $record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                    ->color(fn (PeriodePenilaian $record): string => $record->is_active ? 'danger' : 'success')
                     ->requiresConfirmation()
-                    ->visible(fn (PeriodePenilaian $record): bool => !$record->is_active)
-                    ->action(function (PeriodePenilaian $record) {
-                        $record->update(['is_active' => true]);
-                    }),
+                    ->action(fn (PeriodePenilaian $record) => $record->update(['is_active' => !$record->is_active])),
             ])
             ->bulkActions([Actions\BulkActionGroup::make([Actions\DeleteBulkAction::make()])]);
     }
