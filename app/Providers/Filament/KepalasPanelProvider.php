@@ -24,7 +24,6 @@ class KepalasPanelProvider extends PanelProvider
         return $panel
             ->id('kepalas')
             ->path('kepala')
-            ->login()
             ->profile(EditProfile::class)
             ->brandName('eKinerja Kepala')
             ->colors([

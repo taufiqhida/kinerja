@@ -24,7 +24,6 @@ class PegawaisPanelProvider extends PanelProvider
         return $panel
             ->id('pegawais')
             ->path('pegawai')
-            ->login()
             ->profile(EditProfile::class)
             ->brandName('eKinerja Pegawai')
             ->colors([

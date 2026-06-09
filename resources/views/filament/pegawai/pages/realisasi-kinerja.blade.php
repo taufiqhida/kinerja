@@ -130,8 +130,8 @@
                                         <div>
                                             <label style="display:block;font-size:0.75rem;font-weight:500;color:#374151;margin-bottom:4px;">Tanggal Realisasi *</label>
                                             <input type="date" wire:model="tanggalRealisasi"
-                                                   min="{{ \Carbon\Carbon::parse($periodeAktif->tanggal_mulai)->toDateString() }}"
-                                                   max="{{ \Carbon\Carbon::parse($periodeAktif->tanggal_selesai)->toDateString() }}"
+                                                   min="{{ $minTanggalRealisasi }}"
+                                                   max="{{ $maxTanggalRealisasi }}"
                                                    style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.875rem;background:#fff;" />
                                             @error('tanggalRealisasi') <span style="font-size:0.75rem;color:#ef4444;">{{ $message }}</span> @enderror
                                         </div>
@@ -190,7 +190,7 @@
                                                         {{ $realisasi['keterangan'] ?: 'Tanpa keterangan' }}
                                                     </p>
                                                     <p class="text-xs text-gray-400">
-                                                        {{ \Carbon\Carbon::parse($realisasi['tanggal_realisasi'])->format('d M Y') }}
+                                                        {{ \Carbon\Carbon::parse($realisasi['tanggal_realisasi'])->timezone(config('app.timezone'))->format('d M Y') }}
                                                     </p>
                                                 </div>
                                             </div>

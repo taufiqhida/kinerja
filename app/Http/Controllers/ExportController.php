@@ -20,13 +20,31 @@ class ExportController extends Controller
     {
         $user = auth()->user();
 
-        // Jika pegawai, hanya bisa export milik sendiri
+        // Check permissions and get target Pegawai record
         if ($user->role === 'pegawai') {
-            $pegawai = Pegawai::where('user_id', $user->id)->with(['jabatan', 'unitKerja', 'kepala'])->firstOrFail();
-        } elseif ($pegawaiId) {
-            $pegawai = Pegawai::with(['jabatan', 'unitKerja', 'kepala'])->findOrFail($pegawaiId);
+            $pegawai = Pegawai::where('user_id', $user->id)
+                ->with(['jabatan', 'unitKerja', 'kepala'])
+                ->firstOrFail();
+        } elseif ($user->role === 'kepala') {
+            if (!$pegawaiId) {
+                abort(404);
+            }
+            $kepala = $user->kepala;
+            if (!$kepala) {
+                abort(403, 'Akses ditolak: Data Kepala tidak ditemukan.');
+            }
+            $pegawai = Pegawai::where('id', $pegawaiId)
+                ->where('kepala_id', $kepala->id)
+                ->with(['jabatan', 'unitKerja', 'kepala'])
+                ->firstOrFail();
+        } elseif ($user->role === 'admin') {
+            if (!$pegawaiId) {
+                abort(404);
+            }
+            $pegawai = Pegawai::with(['jabatan', 'unitKerja', 'kepala'])
+                ->findOrFail($pegawaiId);
         } else {
-            abort(404);
+            abort(403, 'Akses ditolak.');
         }
 
         $periodeId = $request->query('periode_id');

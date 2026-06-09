@@ -29,6 +29,9 @@ class RealisasiKinerja extends Page
     public int $selectedPeriodeId = 0;
     public array $periodeOptions = [];
 
+    public string $minTanggalRealisasi = '';
+    public string $maxTanggalRealisasi = '';
+
     // Form state for adding realisasi (+ optional bukti dukung)
     public ?int $selectedIndikatorId = null;
     public int $jumlahRealisasi = 0;
@@ -42,22 +45,32 @@ class RealisasiKinerja extends Page
     public array $penilaianPerilaku = [];
     public bool $sudahDinilai = false;
 
-    public function updatedSelectedPeriodeId(): void
+    protected function calculateDateBounds(): void
     {
-        $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
         if ($this->periodeAktif) {
-            $today = now();
             $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
             $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
+            
+            $this->minTanggalRealisasi = $start->toDateString();
+            $this->maxTanggalRealisasi = $end->lessThan(now()) ? $end->toDateString() : now()->toDateString();
+            
+            $today = now();
             if ($today->between($start, $end)) {
                 $this->tanggalRealisasi = $today->toDateString();
             } else {
-                $this->tanggalRealisasi = $start->toDateString();
+                $this->tanggalRealisasi = $this->maxTanggalRealisasi;
             }
         } else {
+            $this->minTanggalRealisasi = '';
+            $this->maxTanggalRealisasi = '';
             $this->tanggalRealisasi = '';
         }
+    }
 
+    public function updatedSelectedPeriodeId(): void
+    {
+        $this->periodeAktif = PeriodePenilaian::find($this->selectedPeriodeId);
+        $this->calculateDateBounds();
         $this->loadData();
     }
 
@@ -74,16 +87,9 @@ class RealisasiKinerja extends Page
         
         if ($this->periodeAktif) {
             $this->selectedPeriodeId = $this->periodeAktif->id;
-            $today = now();
-            $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
-            $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
-            if ($today->between($start, $end)) {
-                $this->tanggalRealisasi = $today->toDateString();
-            } else {
-                $this->tanggalRealisasi = $start->toDateString();
-            }
         }
         
+        $this->calculateDateBounds();
         $this->loadData();
     }
 
@@ -146,18 +152,7 @@ class RealisasiKinerja extends Page
         $this->jumlahRealisasi = 0;
         $this->keterangan = '';
         
-        if ($this->periodeAktif) {
-            $today = now();
-            $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
-            $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
-            if ($today->between($start, $end)) {
-                $this->tanggalRealisasi = $today->toDateString();
-            } else {
-                $this->tanggalRealisasi = $start->toDateString();
-            }
-        } else {
-            $this->tanggalRealisasi = '';
-        }
+        $this->calculateDateBounds();
         
         $this->judulBukti = '';
         $this->linkBukti = '';
@@ -169,13 +164,10 @@ class RealisasiKinerja extends Page
             return;
         }
 
-        $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai)->toDateString();
-        $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai)->toDateString();
-
         $rules = [
             'selectedIndikatorId' => 'required|exists:indikator_kinerja,id',
             'jumlahRealisasi' => 'required|integer|min:1',
-            'tanggalRealisasi' => "required|date|after_or_equal:{$start}|before_or_equal:{$end}",
+            'tanggalRealisasi' => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
         ];
 
         // Validate bukti fields only if at least one is filled

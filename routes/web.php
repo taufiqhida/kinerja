@@ -13,7 +13,11 @@ Route::middleware('auth')->group(function () {
 });
 
 // Default login route redirect to prevent RouteNotFoundException
-Route::redirect('/login', '/pegawai/login')->name('login');
+Route::redirect('/login', '/admin/login')->name('login');
+
+// Redirect old login routes to the unified login portal
+Route::redirect('/pegawai/login', '/admin/login');
+Route::redirect('/kepala/login', '/admin/login');
 
 // Auto-login route for testing
 Route::get('/auto-login/{role}', function (string $role) {
