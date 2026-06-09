@@ -194,4 +194,25 @@ class UnifiedLoginAndRedirectsTest extends TestCase
         // Assert they are logged out
         $this->assertNull(auth()->user());
     }
+
+    /**
+     * Test that a 403 Forbidden response renders the custom 403 page with warning popup.
+     */
+    public function test_403_page_warning_popup(): void
+    {
+        $pegawaiUser = User::create([
+            'name' => 'Pegawai Test',
+            'email' => 'pegawai_t@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'pegawai',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($pegawaiUser)->get('/kepala');
+
+        $response->assertStatus(403);
+        $response->assertSee('Akses Ditolak');
+        $response->assertSee('Kamu tidak memiliki akses ke halaman ini!');
+        $response->assertSee('countdown');
+    }
 }
