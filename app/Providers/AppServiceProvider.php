@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Http\Responses\LoginResponse;
+use App\Models\PeriodePenilaian;
+use App\Observers\PeriodePenilaianObserver;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        PeriodePenilaian::observe(PeriodePenilaianObserver::class);
     }
 }
 

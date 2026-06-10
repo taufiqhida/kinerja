@@ -44,15 +44,41 @@ class PeriodePenilaianResource extends Resource
                 Tables\Columns\TextColumn::make('tanggal_mulai')->label('Mulai')->date('d M Y')->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_selesai')->label('Selesai')->date('d M Y')->sortable(),
                 Tables\Columns\IconColumn::make('is_active')->label('Aktif')->boolean(),
+                Tables\Columns\TextColumn::make('indikatorKinerja_count')
+                    ->label('Jml. Indikator')
+                    ->counts('indikatorKinerja')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('info'),
             ])
             ->actions([
                 Actions\EditAction::make(),
-                Actions\Action::make('toggleActive')
-                    ->label(fn (PeriodePenilaian $record): string => $record->is_active ? 'Nonaktifkan' : 'Aktifkan')
-                    ->icon(fn (PeriodePenilaian $record): string => $record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
-                    ->color(fn (PeriodePenilaian $record): string => $record->is_active ? 'danger' : 'success')
+                Actions\Action::make('aktifkanSalinIndikator')
+                    ->label('Aktifkan & Salin Indikator')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn (PeriodePenilaian $record) => $record->update(['is_active' => !$record->is_active])),
+                    ->modalHeading(fn (PeriodePenilaian $record) => 'Aktifkan ' . $record->nama_periode . '?')
+                    ->modalDescription('Periode ini akan diaktifkan. Semua indikator kinerja dari periode aktif saat ini akan otomatis disalin ke periode baru (realisasi mulai dari 0). Periode aktif sebelumnya akan dinonaktifkan.')
+                    ->modalSubmitActionLabel('Ya, Aktifkan & Salin')
+                    ->visible(fn (PeriodePenilaian $record) => ! $record->is_active)
+                    ->action(function (PeriodePenilaian $record) {
+                        // Observer akan menangani salin indikator dan nonaktifkan periode lain
+                        $record->update(['is_active' => true]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Periode Diaktifkan')
+                            ->body("Periode \"{$record->nama_periode}\" kini aktif. Indikator kinerja telah disalin otomatis.")
+                            ->success()
+                            ->send();
+                    }),
+                Actions\Action::make('nonaktifkan')
+                    ->label('Nonaktifkan')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (PeriodePenilaian $record) => $record->is_active)
+                    ->action(fn (PeriodePenilaian $record) => $record->update(['is_active' => false])),
             ])
             ->bulkActions([Actions\BulkActionGroup::make([Actions\DeleteBulkAction::make()])]);
     }

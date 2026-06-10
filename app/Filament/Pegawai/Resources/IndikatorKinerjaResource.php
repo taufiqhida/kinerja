@@ -30,12 +30,8 @@ class IndikatorKinerjaResource extends Resource
             Section::make('Data Indikator Kinerja')->schema([
                 Forms\Components\Hidden::make('pegawai_id')
                     ->default(fn () => Pegawai::where('user_id', auth()->id())->first()?->id),
-                Forms\Components\Select::make('periode_id')
-                    ->label('Periode Penilaian')
-                    ->options(fn () => PeriodePenilaian::pluck('nama_periode', 'id'))
-                    ->default(fn () => PeriodePenilaian::getActive()?->id)
-                    ->required()
-                    ->native(false),
+                Forms\Components\Hidden::make('periode_id')
+                    ->default(fn () => PeriodePenilaian::getActive()?->id),
                 Forms\Components\TextInput::make('nama_indikator')
                     ->label('Nama Indikator Kinerja')
                     ->required()

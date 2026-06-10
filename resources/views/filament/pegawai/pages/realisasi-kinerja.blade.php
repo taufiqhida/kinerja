@@ -5,12 +5,6 @@
                 ⚠️ Tidak ada periode penilaian yang aktif saat ini.
             </p>
         </div>
-    @elseif(count($indikators) === 0)
-        <div class="rounded-xl p-6" style="background-color: #eff6ff;">
-            <p style="color: #2563eb; font-weight: 500;">
-                ℹ️ Anda belum memiliki indikator kinerja. Tambahkan melalui menu Indikator Kinerja terlebih dahulu.
-            </p>
-        </div>
     @else
         {{-- Export Button --}}
         <div class="flex justify-end mb-2">
@@ -52,7 +46,14 @@
             </div>
         </div>
 
-        {{-- ===== SECTION 1: INPUT REALISASI KINERJA ===== --}}
+        @if(count($indikators) === 0)
+            <div class="rounded-xl p-6" style="background-color: #eff6ff;">
+                <p style="color: #2563eb; font-weight: 500;">
+                    ℹ️ Anda belum memiliki indikator kinerja. Tambahkan melalui menu Indikator Kinerja terlebih dahulu.
+                </p>
+            </div>
+        @else
+            {{-- ===== SECTION 1: INPUT REALISASI KINERJA ===== --}}
         <div class="mb-6">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;flex-shrink:0;" class="text-primary-600"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
@@ -358,4 +359,5 @@
             </div>
         @endif
     @endif
+@endif
 </x-filament-panels::page>
