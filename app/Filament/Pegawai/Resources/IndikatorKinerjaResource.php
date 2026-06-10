@@ -30,8 +30,12 @@ class IndikatorKinerjaResource extends Resource
             Section::make('Data Indikator Kinerja')->schema([
                 Forms\Components\Hidden::make('pegawai_id')
                     ->default(fn () => Pegawai::where('user_id', auth()->id())->first()?->id),
-                Forms\Components\Hidden::make('periode_id')
-                    ->default(fn () => PeriodePenilaian::getActive()?->id),
+                Forms\Components\Select::make('periode_id')
+                    ->label('Periode Penilaian')
+                    ->options(fn () => PeriodePenilaian::pluck('nama_periode', 'id'))
+                    ->default(fn () => PeriodePenilaian::getActive()?->id)
+                    ->required()
+                    ->native(false),
                 Forms\Components\TextInput::make('nama_indikator')
                     ->label('Nama Indikator Kinerja')
                     ->required()
@@ -91,21 +95,25 @@ class IndikatorKinerjaResource extends Resource
                 Actions\BulkActionGroup::make([
                     Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('periode_id')
+                    ->label('Periode Penilaian')
+                    ->options(fn () => PeriodePenilaian::pluck('nama_periode', 'id'))
+                    ->default(fn () => PeriodePenilaian::getActive()?->id),
             ]);
     }
 
     public static function getEloquentQuery(): Builder
     {
         $pegawai = Pegawai::where('user_id', auth()->id())->first();
-        $periodeAktif = PeriodePenilaian::getActive();
 
-        if (! $pegawai || ! $periodeAktif) {
+        if (! $pegawai) {
             return parent::getEloquentQuery()->whereRaw('1 = 0');
         }
 
         return parent::getEloquentQuery()
-            ->where('pegawai_id', $pegawai->id)
-            ->where('periode_id', $periodeAktif->id);
+            ->where('pegawai_id', $pegawai->id);
     }
 
     public static function getPages(): array
