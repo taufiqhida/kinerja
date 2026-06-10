@@ -8,8 +8,30 @@ use App\Models\PeriodePenilaian;
 class PeriodePenilaianObserver
 {
     /**
+     * Handle the PeriodePenilaian "created" event.
+     * Saat periode baru dibuat (apapun status aktifnya),
+     * langsung salin indikator dari periode aktif/terbaru yang ada.
+     */
+    public function created(PeriodePenilaian $periode): void
+    {
+        // Cari periode lain yang paling baru (aktif duluan, lalu fallback ke semua)
+        $periodeSumber = PeriodePenilaian::where('id', '!=', $periode->id)
+            ->orderByRaw('is_active DESC') // utamakan yang aktif
+            ->orderBy('tanggal_mulai', 'desc')
+            ->first();
+
+        if (! $periodeSumber) {
+            return;
+        }
+
+        static::salinIndikator($periodeSumber->id, $periode->id);
+    }
+
+    /**
      * Handle the PeriodePenilaian "updating" event.
-     * Saat periode di-aktifkan, nonaktifkan periode lain dan salin indikator.
+     * Saat periode di-aktifkan (is_active: false → true),
+     * salin indikator jika periode ini belum punya indikator.
+     * TIDAK menonaktifkan periode lain.
      */
     public function updating(PeriodePenilaian $periode): void
     {
@@ -18,32 +40,26 @@ class PeriodePenilaianObserver
             return;
         }
 
-        // Cari periode yang sebelumnya aktif (sebelum periode ini diaktifkan)
-        $periodeLama = PeriodePenilaian::where('is_active', true)
+        // Cek apakah sudah ada indikator di periode ini
+        $sudahAda = IndikatorKinerja::where('periode_id', $periode->id)->exists();
+        if ($sudahAda) {
+            return; // Tidak perlu salin lagi
+        }
+
+        // Cari periode sumber (aktif terbaru selain periode ini)
+        $periodeSumber = PeriodePenilaian::where('is_active', true)
             ->where('id', '!=', $periode->id)
             ->orderBy('tanggal_mulai', 'desc')
-            ->first();
+            ->first()
+            ?? PeriodePenilaian::where('id', '!=', $periode->id)
+                ->orderBy('tanggal_mulai', 'desc')
+                ->first();
 
-        if (! $periodeLama) {
+        if (! $periodeSumber) {
             return;
         }
 
-        // Salin semua indikator dari periode lama ke periode baru
-        static::salinIndikator($periodeLama->id, $periode->id);
-    }
-
-    /**
-     * Handle the PeriodePenilaian "updated" event.
-     * Nonaktifkan semua periode lain setelah periode ini diaktifkan.
-     */
-    public function updated(PeriodePenilaian $periode): void
-    {
-        if ($periode->wasChanged('is_active') && $periode->is_active) {
-            // Pastikan hanya satu periode aktif
-            PeriodePenilaian::where('id', '!=', $periode->id)
-                ->where('is_active', true)
-                ->update(['is_active' => false]);
-        }
+        static::salinIndikator($periodeSumber->id, $periode->id);
     }
 
     /**

@@ -59,7 +59,7 @@ class PeriodePenilaianResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading(fn (PeriodePenilaian $record) => 'Aktifkan ' . $record->nama_periode . '?')
-                    ->modalDescription('Periode ini akan diaktifkan. Semua indikator kinerja dari periode aktif saat ini akan otomatis disalin ke periode baru (realisasi mulai dari 0). Periode aktif sebelumnya akan dinonaktifkan.')
+                    ->modalDescription('Periode ini akan diaktifkan. Semua indikator kinerja dari periode aktif yang sudah ada akan otomatis disalin ke periode ini (realisasi mulai dari 0). Periode lain TIDAK akan dinonaktifkan.')
                     ->modalSubmitActionLabel('Ya, Aktifkan & Salin')
                     ->visible(fn (PeriodePenilaian $record) => ! $record->is_active)
                     ->action(function (PeriodePenilaian $record) {

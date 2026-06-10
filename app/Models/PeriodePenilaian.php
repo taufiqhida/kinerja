@@ -38,10 +38,29 @@ class PeriodePenilaian extends Model
 
     /**
      * Get the currently active period.
+     * Prioritaskan periode yang tanggalnya mencakup hari ini.
+     * Jika tidak ada, ambil periode aktif dengan tanggal mulai terbaru.
+     * Beberapa periode boleh aktif bersamaan.
      */
     public static function getActive(): ?self
     {
-        return static::where('is_active', true)->orderBy('tanggal_mulai', 'desc')->first()
+        $today = now()->toDateString();
+
+        // Cari periode aktif yang mencakup hari ini
+        $periodeHariIni = static::where('is_active', true)
+            ->whereDate('tanggal_mulai', '<=', $today)
+            ->whereDate('tanggal_selesai', '>=', $today)
+            ->orderBy('tanggal_mulai', 'desc')
+            ->first();
+
+        if ($periodeHariIni) {
+            return $periodeHariIni;
+        }
+
+        // Fallback: periode aktif dengan tanggal mulai paling baru
+        return static::where('is_active', true)
+            ->orderBy('tanggal_mulai', 'desc')
+            ->first()
             ?? static::orderBy('tanggal_mulai', 'desc')->first();
     }
 }
