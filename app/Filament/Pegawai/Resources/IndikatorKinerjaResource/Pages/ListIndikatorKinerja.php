@@ -17,17 +17,10 @@ class ListIndikatorKinerja extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        $pegawai = Pegawai::where('user_id', auth()->id())->first();
+        $pegawai     = Pegawai::where('user_id', auth()->id())->first();
         $periodeAktif = PeriodePenilaian::getActive();
 
-        // Cek apakah periode aktif sudah punya indikator untuk pegawai ini
-        $sudahAdaIndikator = $pegawai && $periodeAktif
-            ? IndikatorKinerja::where('pegawai_id', $pegawai->id)
-                ->where('periode_id', $periodeAktif->id)
-                ->exists()
-            : false;
-
-        // Cari periode sebelumnya yang punya indikator untuk pegawai ini
+        // Cari semua periode yang punya indikator untuk pegawai ini (selain periode aktif)
         $periodeLama = null;
         if ($pegawai && $periodeAktif) {
             $periodeLama = PeriodePenilaian::where('id', '!=', $periodeAktif->id)
@@ -39,17 +32,25 @@ class ListIndikatorKinerja extends ListRecords
                 );
         }
 
+        // Cek apakah periode aktif sudah punya indikator
+        $sudahAdaIndikator = $pegawai && $periodeAktif
+            ? IndikatorKinerja::where('pegawai_id', $pegawai->id)
+                ->where('periode_id', $periodeAktif->id)
+                ->exists()
+            : false;
+
         $modalDesc = $periodeLama
-            ? "Semua indikator dari periode \"{$periodeLama->nama_periode}\" akan disalin ke \"{$periodeAktif?->nama_periode}\". Realisasi mulai dari 0."
+            ? "Semua indikator dari periode \"{$periodeLama->nama_periode}\" akan disalin ke \"{$periodeAktif?->nama_periode}\". Realisasi mulai dari 0. Indikator di periode lain tidak terpengaruh."
             : 'Tidak ada periode sebelumnya yang memiliki indikator.';
 
         return [
+            // Tombol Salin dari Periode Sebelumnya
             Actions\Action::make('salinDariPeriodeSebelumnya')
                 ->label('Salin dari Periode Sebelumnya')
                 ->icon('heroicon-o-arrow-path')
                 ->color('info')
                 ->requiresConfirmation()
-                ->modalHeading('Salin Indikator dari Periode Sebelumnya')
+                ->modalHeading('Salin Indikator ke Periode Ini')
                 ->modalDescription($modalDesc)
                 ->modalSubmitActionLabel('Ya, Salin Sekarang')
                 ->visible(fn () => ! $sudahAdaIndikator && $periodeLama !== null)
@@ -72,7 +73,7 @@ class ListIndikatorKinerja extends ListRecords
                         if (! $sudahAda) {
                             IndikatorKinerja::create([
                                 'pegawai_id'     => $pegawai->id,
-                                'periode_id'     => $periodeAktif->id,
+                                'periode_id'     => $periodeAktif->id,  // ← hanya ke periode aktif ini
                                 'nama_indikator' => $ind->nama_indikator,
                                 'satuan'         => $ind->satuan,
                                 'target_bulanan' => $ind->target_bulanan,
@@ -83,12 +84,12 @@ class ListIndikatorKinerja extends ListRecords
 
                     Notification::make()
                         ->title('Indikator Disalin')
-                        ->body("{$disalin} indikator berhasil disalin dari \"{$periodeLama->nama_periode}\" ke \"{$periodeAktif->nama_periode}\".")
+                        ->body("{$disalin} indikator berhasil disalin ke \"{$periodeAktif->nama_periode}\". Realisasi dimulai dari 0.")
                         ->success()
                         ->send();
                 }),
 
-            Actions\CreateAction::make()->label('Tambah Indikator'),
+            Actions\CreateAction::make()->label('+ Tambah Indikator'),
         ];
     }
 }
