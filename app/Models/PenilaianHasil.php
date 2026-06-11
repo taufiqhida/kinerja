@@ -12,6 +12,8 @@ class PenilaianHasil extends Model
     protected $fillable = [
         'indikator_kinerja_id',
         'kepala_id',
+        'ekspektasi_pimpinan',
+        'feedback',
         'nilai',
         'nilai_angka',
     ];

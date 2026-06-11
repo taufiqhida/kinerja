@@ -3,7 +3,6 @@
 namespace App\Filament\Kepala\Resources\DaftarPegawaiResource\Pages;
 
 use App\Filament\Kepala\Resources\DaftarPegawaiResource;
-use App\Models\FeedbackHasil;
 use App\Models\IndikatorKinerja;
 use App\Models\Kepala;
 use App\Models\Pegawai;
@@ -33,10 +32,9 @@ class DetailPegawai extends Page implements HasForms
     public ?PeriodePenilaian $periodeAktif = null;
     public array $indikators = [];
     public array $penilaianHasil = [];
-    public array $feedbacks = [];
+    public string $overallPenilaianHasil = '';
     public array $penilaianPerilaku = [];
     public array $nilaiAkhir = [];
-    public string $overallPenilaianHasil = '';
     public int $selectedPeriodeId = 0;
     public array $periodeOptions = [];
 
@@ -87,22 +85,22 @@ class DetailPegawai extends Page implements HasForms
 
         $this->indikators = $indikators->toArray();
 
-        // Load existing penilaian hasil
+        // Load existing penilaian hasil per-indikator
         $hasOverall = false;
         foreach ($indikators as $indikator) {
             $existing = PenilaianHasil::where('indikator_kinerja_id', $indikator->id)
                 ->where('kepala_id', $this->kepala->id)
                 ->first();
-            $this->penilaianHasil[$indikator->id] = $existing?->nilai ?? '';
-            if ($existing && !$hasOverall) {
+            $this->penilaianHasil[$indikator->id] = [
+                'nilai'               => $existing?->nilai ?? '',
+                'ekspektasi_pimpinan' => $existing?->ekspektasi_pimpinan ?? '',
+                'feedback'            => $existing?->feedback ?? '',
+            ];
+            // Ambil overall dari indikator pertama yang sudah dinilai
+            if ($existing && ! $hasOverall) {
                 $this->overallPenilaianHasil = $existing->nilai;
                 $hasOverall = true;
             }
-
-            $existingFeedback = FeedbackHasil::where('indikator_kinerja_id', $indikator->id)
-                ->where('kepala_id', $this->kepala->id)
-                ->first();
-            $this->feedbacks[$indikator->id] = $existingFeedback?->isi_feedback ?? '';
         }
 
         // Load existing penilaian perilaku
@@ -137,44 +135,18 @@ class DetailPegawai extends Page implements HasForms
             return;
         }
 
-        if (empty($this->overallPenilaianHasil)) {
+        // Pastikan minimal satu indikator sudah dinilai
+        $adaNilai = collect($this->penilaianHasil)->filter(fn($d) => ! empty($d['nilai']))->isNotEmpty();
+        if (! $adaNilai && empty($this->overallPenilaianHasil)) {
             Notification::make()
                 ->title('Peringatan')
-                ->body('Pilih Rating Hasil Kerja terlebih dahulu.')
+                ->body('Pilih nilai untuk minimal satu indikator kinerja.')
                 ->warning()
                 ->send();
             return;
         }
 
-        // Save penilaian hasil for all indicators
-        foreach ($this->indikators as $indikator) {
-            PenilaianHasil::updateOrCreate(
-                [
-                    'indikator_kinerja_id' => $indikator['id'],
-                    'kepala_id' => $this->kepala->id,
-                ],
-                [
-                    'nilai' => $this->overallPenilaianHasil,
-                ]
-            );
-        }
-
-        // Save feedbacks
-        foreach ($this->feedbacks as $indikatorId => $isiFeedback) {
-            if (empty($isiFeedback)) {
-                continue;
-            }
-
-            FeedbackHasil::updateOrCreate(
-                [
-                    'indikator_kinerja_id' => $indikatorId,
-                    'kepala_id' => $this->kepala->id,
-                ],
-                [
-                    'isi_feedback' => $isiFeedback,
-                ]
-            );
-        }
+        $this->doSimpanHasil();
 
         $this->loadData();
 
@@ -185,6 +157,32 @@ class DetailPegawai extends Page implements HasForms
             ->send();
     }
 
+    /**
+     * Menyimpan data penilaian hasil kerja (digunakan oleh simpanPenilaianHasil dan simpanSemua).
+     */
+    protected function doSimpanHasil(): void
+    {
+        // Jika ada overall rating, terapkan ke semua indikator yang belum punya nilai
+        foreach ($this->penilaianHasil as $indikatorId => $data) {
+            $nilai = $data['nilai'] ?: $this->overallPenilaianHasil;
+            if (empty($nilai)) {
+                continue;
+            }
+
+            PenilaianHasil::updateOrCreate(
+                [
+                    'indikator_kinerja_id' => $indikatorId,
+                    'kepala_id'            => $this->kepala->id,
+                ],
+                [
+                    'nilai'               => $nilai,
+                    'ekspektasi_pimpinan' => $data['ekspektasi_pimpinan'] ?? '',
+                    'feedback'            => $data['feedback'] ?? '',
+                ]
+            );
+        }
+    }
+
     public function simpanPenilaianPerilaku(): void
     {
         if (! $this->kepala || ! $this->periodeAktif) {
@@ -192,6 +190,22 @@ class DetailPegawai extends Page implements HasForms
             return;
         }
 
+        $this->doSimpanPerilaku();
+
+        $this->loadData();
+
+        Notification::make()
+            ->title('Berhasil')
+            ->body('Penilaian perilaku kerja berhasil disimpan.')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Menyimpan data penilaian perilaku (digunakan oleh simpanPenilaianPerilaku dan simpanSemua).
+     */
+    protected function doSimpanPerilaku(): void
+    {
         foreach ($this->penilaianPerilaku as $perilakuMasterId => $data) {
             if (empty($data['nilai'])) {
                 continue;
@@ -199,22 +213,20 @@ class DetailPegawai extends Page implements HasForms
 
             PenilaianPerilaku::updateOrCreate(
                 [
-                    'pegawai_id' => $this->record->id,
-                    'kepala_id' => $this->kepala->id,
-                    'periode_id' => $this->periodeAktif->id,
+                    'pegawai_id'         => $this->record->id,
+                    'kepala_id'          => $this->kepala->id,
+                    'periode_id'         => $this->periodeAktif->id,
                     'perilaku_master_id' => $perilakuMasterId,
                 ],
                 [
                     'ekspektasi_pimpinan' => $data['ekspektasi_pimpinan'] ?? '',
-                    'feedback' => $data['feedback'] ?? '',
-                    'nilai' => $data['nilai'],
+                    'feedback'            => $data['feedback'] ?? '',
+                    'nilai'               => $data['nilai'],
                 ]
             );
         }
 
-        $this->loadData();
-
-        // Check if all penilaian completed → notify pegawai
+        // Kirim notifikasi ke pegawai jika semua perilaku sudah dinilai
         $totalPerilaku = PerilakuMaster::where('is_active', true)->count();
         $dinilai = PenilaianPerilaku::where('pegawai_id', $this->record->id)
             ->where('kepala_id', $this->kepala->id)
@@ -225,10 +237,39 @@ class DetailPegawai extends Page implements HasForms
             $notifService = new NotifikasiService();
             $notifService->notifPenilaianSelesai($this->record->user);
         }
+    }
+
+    /**
+     * Simpan semua penilaian (Hasil Kerja + Perilaku) sekaligus dalam satu aksi.
+     */
+    public function simpanSemua(): void
+    {
+        if (! $this->kepala || ! $this->periodeAktif) {
+            Notification::make()->title('Error')->body('Tidak ada periode aktif atau data kepala.')->danger()->send();
+            return;
+        }
+
+        // Validasi: minimal ada overall rating atau satu indikator dinilai
+        $adaNilaiHasil = collect($this->penilaianHasil)->filter(fn($d) => ! empty($d['nilai']))->isNotEmpty()
+            || ! empty($this->overallPenilaianHasil);
+
+        if (! $adaNilaiHasil) {
+            Notification::make()
+                ->title('Peringatan')
+                ->body('Pilih nilai untuk minimal satu indikator kinerja atau pilih Rating Keseluruhan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $this->doSimpanHasil();
+        $this->doSimpanPerilaku();
+
+        $this->loadData();
 
         Notification::make()
-            ->title('Berhasil')
-            ->body('Penilaian perilaku kerja berhasil disimpan.')
+            ->title('✅ Semua Penilaian Tersimpan')
+            ->body('Penilaian Hasil Kerja dan Perilaku berhasil disimpan sekaligus.')
             ->success()
             ->send();
     }

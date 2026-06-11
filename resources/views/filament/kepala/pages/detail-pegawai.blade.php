@@ -135,6 +135,9 @@
             </div>
         </div>
 
+        {{-- ====== SATU FORM GABUNGAN ====== --}}
+        <form wire:submit="simpanSemua">
+
         {{-- ====== PENILAIAN HASIL KERJA ====== --}}
         <div class="rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
             {{-- Header --}}
@@ -150,141 +153,102 @@
                 </div>
             </div>
 
-            <form wire:submit="simpanPenilaianHasil">
-                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;" class="bg-gray-50/50 dark:bg-gray-950/20">
-                    @forelse($indikators as $indikator)
-                        @php
-                            $totalRealisasi = collect($indikator['realisasi_kinerja'] ?? [])->sum('jumlah_realisasi');
-                            $target = $indikator['target_bulanan'] ?? 0;
-                            $capaian = $target > 0 ? round(($totalRealisasi / $target) * 100, 1) : 0;
-                            $capColor = $capaian >= 100 ? '#16a34a' : ($capaian >= 50 ? '#d97706' : '#dc2626');
-                            $capBg = $capaian >= 100 ? '#f0fdf4' : ($capaian >= 50 ? '#fffbeb' : '#fef2f2');
-                            $capBorder = $capaian >= 100 ? '#bbf7d0' : ($capaian >= 50 ? '#fde68a' : '#fecaca');
-                        @endphp
-                        <div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
-                            {{-- Card Header: Info Row --}}
-                            <div style="padding:16px 20px;background:linear-gradient(to bottom,#f9fafb,#fff);">
-                                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;">
-                                    <h4 style="font-size:0.9rem;font-weight:600;color:#1f2937;margin:0;">{{ $indikator['nama_indikator'] }}</h4>
-                                    {{-- Capaian Badge --}}
-                                    <span style="background:{{ $capBg }};color:{{ $capColor }};border:1px solid {{ $capBorder }};font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;">
+            {{-- Per-Indikator Cards --}}
+            <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;" class="bg-gray-50/50 dark:bg-gray-950/20">
+                @forelse($indikators as $indikator)
+                    @php
+                        $totalRealisasi = collect($indikator['realisasi_kinerja'] ?? [])->sum('jumlah_realisasi');
+                        $target = $indikator['target_bulanan'] ?? 0;
+                        $capaian = $target > 0 ? round(($totalRealisasi / $target) * 100, 1) : 0;
+                        $capColor = $capaian >= 100 ? '#16a34a' : ($capaian >= 50 ? '#d97706' : '#dc2626');
+                        $capBg = $capaian >= 100 ? '#f0fdf4' : ($capaian >= 50 ? '#fffbeb' : '#fef2f2');
+                        $capBorder = $capaian >= 100 ? '#bbf7d0' : ($capaian >= 50 ? '#fde68a' : '#fecaca');
+                    @endphp
+                    <div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
+                        {{-- Card Top: Capaian + Nama + Stats + Dropdown Nilai --}}
+                        <div style="padding:16px 20px;background:linear-gradient(to bottom,#f9fafb,#fff);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+                            <div style="display:flex;gap:12px;flex:1;">
+                                {{-- Capaian Badge --}}
+                                <div style="flex-shrink:0;padding-top:2px;">
+                                    <span style="display:inline-flex;align-items:center;justify-content:center;min-width:52px;padding:4px 10px;border-radius:20px;background:{{ $capBg }};color:{{ $capColor }};border:1px solid {{ $capBorder }};font-size:0.75rem;font-weight:700;white-space:nowrap;">
                                         {{ $capaian }}%
                                     </span>
                                 </div>
-
-                                {{-- Stats Row --}}
-                                <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
-                                    <div style="display:flex;align-items:center;gap:6px;">
-                                        <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Satuan</span>
-                                        <span style="font-size:0.8rem;color:#374151;font-weight:500;">{{ $indikator['satuan'] }}</span>
-                                    </div>
-                                    <div style="display:flex;align-items:center;gap:6px;">
-                                        <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Target/Bln</span>
-                                        <span style="font-size:0.8rem;color:#374151;font-weight:700;">{{ $target }}</span>
-                                    </div>
-                                    <div style="display:flex;align-items:center;gap:6px;">
-                                        <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Realisasi</span>
-                                        <span style="font-size:0.8rem;color:#374151;font-weight:700;">{{ $totalRealisasi }}</span>
-                                    </div>
-                                    {{-- Progress Bar --}}
-                                    <div style="flex:1;min-width:100px;">
-                                        <div style="width:100%;background:#e5e7eb;border-radius:9999px;height:6px;overflow:hidden;">
-                                            <div style="height:6px;border-radius:9999px;background:{{ $capColor }};width:{{ min($capaian, 100) }}%;transition:width 0.5s ease;"></div>
+                                <div style="flex:1;">
+                                    <h4 style="font-size:0.9rem;font-weight:600;color:#1f2937;margin:0 0 6px 0;">{{ $indikator['nama_indikator'] }}</h4>
+                                    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                                        <div style="display:flex;align-items:center;gap:5px;">
+                                            <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Satuan</span>
+                                            <span style="font-size:0.8rem;color:#374151;font-weight:500;">{{ $indikator['satuan'] }}</span>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:5px;">
+                                            <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Target/Bln</span>
+                                            <span style="font-size:0.8rem;color:#374151;font-weight:700;">{{ $target }}</span>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:5px;">
+                                            <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase;font-weight:600;">Realisasi</span>
+                                            <span style="font-size:0.8rem;color:#374151;font-weight:700;">{{ $totalRealisasi }}</span>
+                                        </div>
+                                        {{-- Progress Bar --}}
+                                        <div style="flex:1;min-width:80px;">
+                                            <div style="width:100%;background:#e5e7eb;border-radius:9999px;height:6px;overflow:hidden;">
+                                                <div style="height:6px;border-radius:9999px;background:{{ $capColor }};width:{{ min($capaian, 100) }}%;transition:width 0.5s ease;"></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {{-- Bukti Dukung --}}
-                                @if(count($indikator['bukti_dukung'] ?? []) > 0)
-                                    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
-                                        @foreach($indikator['bukti_dukung'] as $bukti)
-                                            <a href="{{ $bukti['link_bukti'] }}" target="_blank"
-                                               style="display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-weight:500;padding:3px 10px;border-radius:20px;background:#eff6ff;color:#2563eb;text-decoration:none;">
-                                                📎 {{ $bukti['judul_bukti'] }}
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                            {{-- Card Bottom: Feedback Only with Quick Emoji Buttons --}}
-                            <div style="border-top:1px solid #f3f4f6;padding:16px 20px;">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-                                    <label style="font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin:0;">Feedback</label>
-                                    <div style="display:flex;gap:6px;align-items:center;">
-                                        <span style="font-size:0.7rem;color:#9ca3af;font-weight:500;">Feedback Cepat:</span>
-                                        <button type="button" 
-                                                wire:click="$set('feedbacks.{{ $indikator['id'] }}', '👎 Di Bawah Ekspektasi')" 
-                                                style="padding:3px 8px;font-size:0.75rem;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;">
-                                            👎 Di Bawah Ekspektasi
-                                        </button>
-                                        <button type="button" 
-                                                wire:click="$set('feedbacks.{{ $indikator['id'] }}', '👍 Sesuai Ekspektasi')" 
-                                                style="padding:3px 8px;font-size:0.75rem;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;">
-                                            👍 Sesuai Ekspektasi
-                                        </button>
-                                        <button type="button" 
-                                                wire:click="$set('feedbacks.{{ $indikator['id'] }}', '👍👍 Di Atas Ekspektasi')" 
-                                                style="padding:3px 8px;font-size:0.75rem;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;">
-                                            👍👍 Di Atas Ekspektasi
-                                        </button>
-                                    </div>
+                                    {{-- Bukti Dukung --}}
+                                    @if(count($indikator['bukti_dukung'] ?? []) > 0)
+                                        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
+                                            @foreach($indikator['bukti_dukung'] as $bukti)
+                                                <a href="{{ $bukti['link_bukti'] }}" target="_blank"
+                                                   style="display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-weight:500;padding:3px 10px;border-radius:20px;background:#eff6ff;color:#2563eb;text-decoration:none;">
+                                                    📎 {{ $bukti['judul_bukti'] }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
-                                <textarea wire:model="feedbacks.{{ $indikator['id'] }}"
+                            </div>
+                            {{-- Dropdown Nilai per Indikator --}}
+                            <div style="flex-shrink:0;">
+                                <select wire:model="penilaianHasil.{{ $indikator['id'] }}.nilai"
+                                        style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.8rem;color:#374151;background:#fff;cursor:pointer;min-width:190px;">
+                                    <option value="">-- Pilih Nilai --</option>
+                                    <option value="di_atas_ekspektasi">👍👍 Di Atas Ekspektasi</option>
+                                    <option value="sesuai_ekspektasi">👍 Sesuai Ekspektasi</option>
+                                    <option value="perlu_perbaikan">👎 Perlu Perbaikan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Card Bottom: Ekspektasi Pimpinan + Feedback --}}
+                        <div style="border-top:1px solid #f3f4f6;display:grid;grid-template-columns:1fr 1fr;">
+                            <div style="padding:14px 20px;border-right:1px solid #f3f4f6;">
+                                <label style="display:block;font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Ekspektasi Pimpinan</label>
+                                <textarea wire:model="penilaianHasil.{{ $indikator['id'] }}.ekspektasi_pimpinan"
+                                          rows="2"
+                                          placeholder="Tuliskan ekspektasi..."
+                                          style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.8rem;color:#374151;resize:vertical;background:#fafafa;box-sizing:border-box;"></textarea>
+                            </div>
+                            <div style="padding:14px 20px;">
+                                <label style="display:block;font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Feedback</label>
+                                <textarea wire:model="penilaianHasil.{{ $indikator['id'] }}.feedback"
                                           rows="2"
                                           placeholder="Tuliskan feedback..."
-                                          style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#374151;resize:vertical;background:#fafafa;box-sizing:border-box;"></textarea>
+                                          style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.8rem;color:#374151;resize:vertical;background:#fafafa;box-sizing:border-box;"></textarea>
                             </div>
                         </div>
-                    @empty
-                        <div style="padding:40px 20px;text-align:center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width:40px;height:40px;margin:0 auto 8px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                            </svg>
-                            <p style="color:#9ca3af;font-size:0.875rem;">Pegawai belum memiliki indikator kinerja untuk periode ini.</p>
-                        </div>
-                    @endforelse
-
-                    {{-- ====== OVERALL RATING ====== --}}
-                    @if(count($indikators) > 0)
-                        <div style="margin-top:20px;padding:20px 24px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:16px;display:flex;flex-direction:column;gap:12px;">
-                            <div>
-                                <h4 style="font-size:0.9rem;font-weight:700;color:#1e293b;margin:0;">Rating Hasil Kerja (Keseluruhan)</h4>
-                                <p style="font-size:0.75rem;color:#64748b;margin-top:2px;">Pilih penilaian akhir untuk capaian hasil kerja pegawai secara keseluruhan</p>
-                            </div>
-                            <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                                {{-- Option: Di Bawah Ekspektasi --}}
-                                <div wire:click="$set('overallPenilaianHasil', 'perlu_perbaikan')" 
-                                     style="flex:1;min-width:180px;cursor:pointer;margin:0;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#ef4444' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#fef2f2' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '0 4px 12px rgba(239,68,68,0.1)' : 'none' }};">
-                                    <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👎</div>
-                                    <div style="font-size:0.85rem;font-weight:700;color:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#991b1b' : '#475569' }};">Di Bawah Ekspektasi</div>
-                                </div>
-
-                                {{-- Option: Sesuai Ekspektasi --}}
-                                <div wire:click="$set('overallPenilaianHasil', 'sesuai_ekspektasi')" 
-                                     style="flex:1;min-width:180px;cursor:pointer;margin:0;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#10b981' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#ecfdf5' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '0 4px 12px rgba(16,185,129,0.1)' : 'none' }};">
-                                    <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👍</div>
-                                    <div style="font-size:0.85rem;font-weight:700;color:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#065f46' : '#475569' }};">Sesuai Ekspektasi</div>
-                                </div>
-
-                                {{-- Option: Di Atas Ekspektasi --}}
-                                <div wire:click="$set('overallPenilaianHasil', 'di_atas_ekspektasi')" 
-                                     style="flex:1;min-width:180px;cursor:pointer;margin:0;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#3b82f6' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#eff6ff' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '0 4px 12px rgba(59,130,246,0.1)' : 'none' }};">
-                                    <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👍👍</div>
-                                    <div style="font-size:0.85rem;font-weight:700;color:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#1e40af' : '#475569' }};">Di Atas Ekspektasi</div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-
-                @if(count($indikators) > 0)
-                    <div style="padding:16px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;background:#f9fafb;">
-                        <x-filament::button type="submit" color="primary" icon="heroicon-o-check">
-                            Simpan Penilaian Hasil Kerja
-                        </x-filament::button>
                     </div>
-                @endif
-            </form>
+                @empty
+                    <div style="padding:40px 20px;text-align:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width:40px;height:40px;margin:0 auto 8px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        <p style="color:#9ca3af;font-size:0.875rem;">Pegawai belum memiliki indikator kinerja untuk periode ini.</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
 
         {{-- ====== PENILAIAN PERILAKU KERJA ====== --}}
@@ -302,67 +266,106 @@
                 </div>
             </div>
 
-            <form wire:submit="simpanPenilaianPerilaku">
-                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;">
-                    @foreach($this->getPerilakuMasters() as $pm)
-                        <div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
-                            {{-- Card Top: Number + Title + Indikator + Select --}}
-                            <div style="padding:16px 20px;background:linear-gradient(to bottom,#f9fafb,#fff);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
-                                <div style="display:flex;gap:12px;flex:1;">
-                                    {{-- Number Badge --}}
-                                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 4px rgba(79,70,229,0.3);">
-                                        {{ $pm->urutan }}
-                                    </div>
-                                    <div style="flex:1;">
-                                        <h4 style="font-size:0.9rem;font-weight:600;color:#1f2937;margin:0 0 8px 0;">{{ $pm->nama_perilaku }}</h4>
-                                        @foreach($pm->indikator as $ind)
-                                            <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
-                                                <span style="color:#a5b4fc;font-size:0.7rem;margin-top:1px;flex-shrink:0;">●</span>
-                                                <span style="font-size:0.75rem;color:#6b7280;line-height:1.4;">{{ $ind->deskripsi_indikator }}</span>
-                                            </div>
-                                        @endforeach
-                                    </div>
+            <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;">
+                @foreach($this->getPerilakuMasters() as $pm)
+                    <div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;">
+                        {{-- Card Top: Number + Title + Indikator + Select --}}
+                        <div style="padding:16px 20px;background:linear-gradient(to bottom,#f9fafb,#fff);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+                            <div style="display:flex;gap:12px;flex:1;">
+                                {{-- Number Badge --}}
+                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 4px rgba(79,70,229,0.3);">
+                                    {{ $pm->urutan }}
                                 </div>
-                                {{-- Select Dropdown --}}
-                                <div style="flex-shrink:0;">
-                                    <select wire:model="penilaianPerilaku.{{ $pm->id }}.nilai"
-                                            style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.8rem;color:#374151;background:#fff;cursor:pointer;min-width:180px;">
-                                        <option value="">-- Pilih Nilai --</option>
-                                        <option value="di_atas_ekspektasi">👍👍 Di Atas Ekspektasi</option>
-                                        <option value="sesuai_ekspektasi">👍 Sesuai Ekspektasi</option>
-                                        <option value="perlu_perbaikan">👎 Perlu Perbaikan</option>
-                                    </select>
+                                <div style="flex:1;">
+                                    <h4 style="font-size:0.9rem;font-weight:600;color:#1f2937;margin:0 0 8px 0;">{{ $pm->nama_perilaku }}</h4>
+                                    @foreach($pm->indikator as $ind)
+                                        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
+                                            <span style="color:#a5b4fc;font-size:0.7rem;margin-top:1px;flex-shrink:0;">●</span>
+                                            <span style="font-size:0.75rem;color:#6b7280;line-height:1.4;">{{ $ind->deskripsi_indikator }}</span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
-
-                            {{-- Card Bottom: Ekspektasi + Feedback --}}
-                            <div style="border-top:1px solid #f3f4f6;display:grid;grid-template-columns:1fr 1fr;">
-                                <div style="padding:14px 20px;border-right:1px solid #f3f4f6;">
-                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Ekspektasi Pimpinan</label>
-                                    <textarea wire:model="penilaianPerilaku.{{ $pm->id }}.ekspektasi_pimpinan"
-                                              rows="2"
-                                              placeholder="Tuliskan ekspektasi..."
-                                              style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.8rem;color:#374151;resize:vertical;background:#fafafa;"></textarea>
-                                </div>
-                                <div style="padding:14px 20px;">
-                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Feedback</label>
-                                    <textarea wire:model="penilaianPerilaku.{{ $pm->id }}.feedback"
-                                              rows="2"
-                                              placeholder="Tuliskan feedback..."
-                                              style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.8rem;color:#374151;resize:vertical;background:#fafafa;"></textarea>
-                                </div>
+                            {{-- Select Dropdown --}}
+                            <div style="flex-shrink:0;">
+                                <select wire:model="penilaianPerilaku.{{ $pm->id }}.nilai"
+                                        style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.8rem;color:#374151;background:#fff;cursor:pointer;min-width:180px;">
+                                    <option value="">-- Pilih Nilai --</option>
+                                    <option value="di_atas_ekspektasi">👍👍 Di Atas Ekspektasi</option>
+                                    <option value="sesuai_ekspektasi">👍 Sesuai Ekspektasi</option>
+                                    <option value="perlu_perbaikan">👎 Perlu Perbaikan</option>
+                                </select>
                             </div>
                         </div>
-                    @endforeach
-                </div>
 
-                <div style="padding:16px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;background:#f9fafb;">
-                    <x-filament::button type="submit" color="primary" icon="heroicon-o-check">
-                        Simpan Penilaian Perilaku
-                    </x-filament::button>
-                </div>
-            </form>
+                        {{-- Card Bottom: Ekspektasi + Feedback --}}
+                        <div style="border-top:1px solid #f3f4f6;display:grid;grid-template-columns:1fr 1fr;">
+                            <div style="padding:14px 20px;border-right:1px solid #f3f4f6;">
+                                <label style="display:block;font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Ekspektasi Pimpinan</label>
+                                <textarea wire:model="penilaianPerilaku.{{ $pm->id }}.ekspektasi_pimpinan"
+                                          rows="2"
+                                          placeholder="Tuliskan ekspektasi..."
+                                          style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.8rem;color:#374151;resize:vertical;background:#fafafa;"></textarea>
+                            </div>
+                            <div style="padding:14px 20px;">
+                                <label style="display:block;font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">Feedback</label>
+                                <textarea wire:model="penilaianPerilaku.{{ $pm->id }}.feedback"
+                                          rows="2"
+                                          placeholder="Tuliskan feedback..."
+                                          style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.8rem;color:#374151;resize:vertical;background:#fafafa;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
+
+        {{-- ====== OVERALL RATING HASIL KERJA ====== --}}
+        @if(count($indikators) > 0)
+            <div style="padding:24px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px dashed #cbd5e1;border-radius:16px;display:flex;flex-direction:column;gap:14px;">
+                <div>
+                    <h4 style="font-size:0.9rem;font-weight:700;color:#1e293b;margin:0;">⭐ Rating Hasil Kerja (Keseluruhan)</h4>
+                    <p style="font-size:0.75rem;color:#64748b;margin-top:4px;">Pilih penilaian akhir untuk capaian hasil kerja pegawai secara keseluruhan. Nilai ini akan diterapkan ke semua indikator yang belum dipilih secara individual.</p>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    {{-- Di Bawah Ekspektasi --}}
+                    <div wire:click="$set('overallPenilaianHasil', 'perlu_perbaikan')"
+                         style="flex:1;min-width:160px;cursor:pointer;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#ef4444' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#fef2f2' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '0 4px 12px rgba(239,68,68,0.15)' : 'none' }};">
+                        <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👎</div>
+                        <div style="font-size:0.82rem;font-weight:700;color:{{ $overallPenilaianHasil === 'perlu_perbaikan' ? '#991b1b' : '#475569' }};">Di Bawah Ekspektasi</div>
+                    </div>
+                    {{-- Sesuai Ekspektasi --}}
+                    <div wire:click="$set('overallPenilaianHasil', 'sesuai_ekspektasi')"
+                         style="flex:1;min-width:160px;cursor:pointer;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#10b981' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#ecfdf5' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '0 4px 12px rgba(16,185,129,0.15)' : 'none' }};">
+                        <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👍</div>
+                        <div style="font-size:0.82rem;font-weight:700;color:{{ $overallPenilaianHasil === 'sesuai_ekspektasi' ? '#065f46' : '#475569' }};">Sesuai Ekspektasi</div>
+                    </div>
+                    {{-- Di Atas Ekspektasi --}}
+                    <div wire:click="$set('overallPenilaianHasil', 'di_atas_ekspektasi')"
+                         style="flex:1;min-width:160px;cursor:pointer;padding:16px;border-radius:12px;border:2px solid {{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#3b82f6' : '#e2e8f0' }};background:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#eff6ff' : '#fff' }};text-align:center;transition:all 0.2s;box-shadow:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '0 4px 12px rgba(59,130,246,0.15)' : 'none' }};">
+                        <div style="font-size:1.8rem;margin-bottom:6px;line-height:1;">👍👍</div>
+                        <div style="font-size:0.82rem;font-weight:700;color:{{ $overallPenilaianHasil === 'di_atas_ekspektasi' ? '#1e40af' : '#475569' }};">Di Atas Ekspektasi</div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ====== TOMBOL SIMPAN SEMUA ====== --}}
+        <div style="padding:20px 24px;background:linear-gradient(135deg,#0f172a,#1e3a8a);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 4px 20px rgba(30,58,138,0.2);">
+            <div>
+                <p style="color:rgba(255,255,255,0.9);font-weight:700;font-size:0.95rem;margin:0;">Simpan Semua Penilaian</p>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.75rem;margin-top:2px;">Hasil Kerja (60%) + Perilaku BerAKHLAK (40%) akan disimpan sekaligus</p>
+            </div>
+            <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-weight:700;font-size:0.9rem;border:none;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(99,102,241,0.4);transition:all 0.2s;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Simpan Semua Penilaian
+            </button>
+        </div>
+
+        </form>
 
     @else
         <div class="rounded-xl p-6 flex items-start gap-3" style="background:#fffbeb;border:1px solid #fde68a;">
