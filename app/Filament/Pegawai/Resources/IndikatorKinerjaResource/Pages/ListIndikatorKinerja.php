@@ -48,8 +48,9 @@ class ListIndikatorKinerja extends ListRecords
 
                     Forms\Components\CheckboxList::make('target_periode_ids')
                         ->label('Salin Ke (Periode Tujuan)')
-                        ->options(function (Forms\Get $get) {
+                        ->options(function ($get) {
                             $sourceId = $get('source_periode_id');
+
                             $query = PeriodePenilaian::orderBy('tahun', 'desc')
                                 ->orderBy('tanggal_mulai', 'desc');
                             if ($sourceId) {

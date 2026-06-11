@@ -215,4 +215,44 @@ class UnifiedLoginAndRedirectsTest extends TestCase
         $response->assertSee('Kamu tidak memiliki akses ke halaman ini!');
         $response->assertSee('countdown');
     }
+
+    /**
+     * Test that GET requests to panel logout endpoints successfully log out the user and redirect to login.
+     */
+    public function test_get_logout_routes_redirect_to_login(): void
+    {
+        $pegawaiUser = User::create([
+            'name' => 'Pegawai Test',
+            'email' => 'pegawai_t2@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'pegawai',
+            'is_active' => true,
+        ]);
+
+        // Logged in
+        $this->actingAs($pegawaiUser);
+        $this->assertNotNull(auth()->user());
+
+        // Visit GET /pegawai/logout
+        $response = $this->get('/pegawai/logout');
+
+        // Check redirect and that user is logged out
+        $response->assertRedirect('/admin/login');
+        $this->assertNull(auth()->user());
+
+        // Same for admin/logout and kepala/logout
+        $adminUser = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin_t2@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($adminUser);
+        $responseAdmin = $this->get('/admin/logout');
+        $responseAdmin->assertRedirect('/admin/login');
+        $this->assertNull(auth()->user());
+    }
 }
+

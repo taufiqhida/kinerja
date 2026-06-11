@@ -27,6 +27,15 @@ Route::redirect('/login', '/admin/login')->name('login');
 Route::redirect('/pegawai/login', '/admin/login');
 Route::redirect('/kepala/login', '/admin/login');
 
+// Safe GET logout route handlers to prevent 405 MethodNotAllowed errors
+Route::get('/{panel}/logout', function (string $panel) {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect()->to('/admin/login');
+})->where('panel', 'admin|kepala|pegawai');
+
+
 // Auto-login route for testing
 Route::get('/auto-login/{role}', function (string $role) {
     $email = match ($role) {
