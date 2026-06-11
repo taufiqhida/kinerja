@@ -40,6 +40,12 @@ class RealisasiKinerja extends Page
     public string $judulBukti = '';
     public string $linkBukti = '';
 
+    // Form state for editing an indicator (before it is assessed)
+    public ?int $editingIndikatorId = null;
+    public string $editNamaIndikator = '';
+    public string $editSatuan = '';
+    public int $editTargetBulanan = 1;
+
     // Hasil penilaian data (merged from HasilPenilaian page)
     public array $nilaiAkhir = [];
     public array $penilaianPerilaku = [];
@@ -49,11 +55,11 @@ class RealisasiKinerja extends Page
     {
         if ($this->periodeAktif) {
             $start = \Carbon\Carbon::parse($this->periodeAktif->tanggal_mulai);
-            $end = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
-            
+            $end   = \Carbon\Carbon::parse($this->periodeAktif->tanggal_selesai);
+
             $this->minTanggalRealisasi = $start->toDateString();
             $this->maxTanggalRealisasi = $end->lessThan(now()) ? $end->toDateString() : now()->toDateString();
-            
+
             $today = now();
             if ($today->between($start, $end)) {
                 $this->tanggalRealisasi = $today->toDateString();
@@ -63,7 +69,7 @@ class RealisasiKinerja extends Page
         } else {
             $this->minTanggalRealisasi = '';
             $this->maxTanggalRealisasi = '';
-            $this->tanggalRealisasi = '';
+            $this->tanggalRealisasi    = '';
         }
     }
 
@@ -77,18 +83,18 @@ class RealisasiKinerja extends Page
     public function mount(): void
     {
         $this->pegawai = Pegawai::where('user_id', auth()->id())->first();
-        
+
         $this->periodeOptions = PeriodePenilaian::orderBy('tahun', 'desc')
             ->orderBy('tanggal_mulai', 'desc')
             ->pluck('nama_periode', 'id')
             ->toArray();
 
         $this->periodeAktif = PeriodePenilaian::getActive();
-        
+
         if ($this->periodeAktif) {
             $this->selectedPeriodeId = $this->periodeAktif->id;
         }
-        
+
         $this->calculateDateBounds();
         $this->loadData();
     }
@@ -124,15 +130,15 @@ class RealisasiKinerja extends Page
                 ->first();
 
             $this->penilaianPerilaku[] = [
-                'nama_perilaku' => $pm->nama_perilaku,
-                'urutan' => $pm->urutan,
-                'indikator' => $pm->indikator->toArray(),
-                'nilai' => $penilaian?->nilai ?? null,
-                'nilai_label' => $penilaian ? PenilaianPerilaku::NILAI_LABEL[$penilaian->nilai] ?? '-' : '-',
-                'nilai_emoji' => $penilaian ? PenilaianPerilaku::NILAI_EMOJI[$penilaian->nilai] ?? '' : '',
+                'nama_perilaku'       => $pm->nama_perilaku,
+                'urutan'              => $pm->urutan,
+                'indikator'           => $pm->indikator->toArray(),
+                'nilai'               => $penilaian?->nilai ?? null,
+                'nilai_label'         => $penilaian ? PenilaianPerilaku::NILAI_LABEL[$penilaian->nilai] ?? '-' : '-',
+                'nilai_emoji'         => $penilaian ? PenilaianPerilaku::NILAI_EMOJI[$penilaian->nilai] ?? '' : '',
                 'ekspektasi_pimpinan' => $penilaian?->ekspektasi_pimpinan ?? '',
-                'feedback' => $penilaian?->feedback ?? '',
-                'penilai' => $penilaian?->kepala?->nama_lengkap ?? '-',
+                'feedback'            => $penilaian?->feedback ?? '',
+                'penilai'             => $penilaian?->kepala?->nama_lengkap ?? '-',
             ];
         }
 
@@ -142,80 +148,70 @@ class RealisasiKinerja extends Page
             ->exists();
 
         // Calculate nilai akhir
-        $service = new PerhitunganNilaiService();
+        $service         = new PerhitunganNilaiService();
         $this->nilaiAkhir = $service->hitungNilaiAkhir($this->pegawai, $this->periodeAktif);
     }
 
+    // ── Tambah Realisasi ────────────────────────────────────────────────────────
+
     public function openTambahRealisasi(int $indikatorId): void
     {
+        $this->editingIndikatorId = null; // tutup form edit jika terbuka
         $this->selectedIndikatorId = $indikatorId;
-        $this->jumlahRealisasi = 0;
-        $this->keterangan = '';
-        
+        $this->jumlahRealisasi     = 0;
+        $this->keterangan          = '';
+        $this->judulBukti          = '';
+        $this->linkBukti           = '';
+
         $this->calculateDateBounds();
-        
-        $this->judulBukti = '';
-        $this->linkBukti = '';
     }
 
     public function simpanRealisasi(): void
     {
-        if (!$this->periodeAktif) {
+        if (! $this->periodeAktif) {
             return;
         }
 
         $rules = [
             'selectedIndikatorId' => 'required|exists:indikator_kinerja,id',
-            'jumlahRealisasi' => 'required|integer|min:1',
-            'tanggalRealisasi' => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
+            'jumlahRealisasi'     => 'required|integer|min:1',
+            'tanggalRealisasi'    => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
         ];
 
-        // Validate bukti fields only if at least one is filled
         if (! empty($this->judulBukti) || ! empty($this->linkBukti)) {
             $rules['judulBukti'] = 'required|string|max:255';
-            $rules['linkBukti'] = 'required|url|max:500';
+            $rules['linkBukti']  = 'required|url|max:500';
         }
 
         $this->validate($rules);
 
         RealisasiKinerjaModel::create([
             'indikator_kinerja_id' => $this->selectedIndikatorId,
-            'jumlah_realisasi' => $this->jumlahRealisasi,
-            'keterangan' => $this->keterangan,
-            'tanggal_realisasi' => $this->tanggalRealisasi,
+            'jumlah_realisasi'     => $this->jumlahRealisasi,
+            'keterangan'           => $this->keterangan,
+            'tanggal_realisasi'    => $this->tanggalRealisasi,
         ]);
 
-        // Save bukti dukung if provided
         if (! empty($this->judulBukti) && ! empty($this->linkBukti)) {
             BuktiDukungLink::create([
                 'indikator_kinerja_id' => $this->selectedIndikatorId,
-                'judul_bukti' => $this->judulBukti,
-                'link_bukti' => $this->linkBukti,
+                'judul_bukti'          => $this->judulBukti,
+                'link_bukti'           => $this->linkBukti,
             ]);
         }
 
         $this->selectedIndikatorId = null;
         $this->loadData();
 
-        Notification::make()
-            ->title('Berhasil')
-            ->body('Realisasi berhasil ditambahkan.')
-            ->success()
-            ->send();
+        Notification::make()->title('Berhasil')->body('Realisasi berhasil ditambahkan.')->success()->send();
     }
-
-
 
     public function hapusRealisasi(int $id): void
     {
         RealisasiKinerjaModel::where('id', $id)->delete();
         $this->loadData();
 
-        Notification::make()
-            ->title('Dihapus')
-            ->body('Realisasi berhasil dihapus.')
-            ->success()
-            ->send();
+        Notification::make()->title('Dihapus')->body('Realisasi berhasil dihapus.')->success()->send();
     }
 
     public function hapusBukti(int $id): void
@@ -223,12 +219,96 @@ class RealisasiKinerja extends Page
         BuktiDukungLink::where('id', $id)->delete();
         $this->loadData();
 
-        Notification::make()
-            ->title('Dihapus')
-            ->body('Bukti dukung berhasil dihapus.')
-            ->success()
-            ->send();
+        Notification::make()->title('Dihapus')->body('Bukti dukung berhasil dihapus.')->success()->send();
     }
+
+    // ── Edit & Hapus Indikator (hanya sebelum dinilai kepala) ──────────────────
+
+    public function openEditIndikator(int $indikatorId): void
+    {
+        $indikator = IndikatorKinerja::find($indikatorId);
+        if (! $indikator || $indikator->pegawai_id !== $this->pegawai?->id) {
+            return;
+        }
+
+        if ($indikator->penilaianHasil()->exists()) {
+            Notification::make()
+                ->title('Tidak Dapat Diedit')
+                ->body('Indikator ini sudah dinilai oleh atasan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $this->selectedIndikatorId  = null; // tutup form tambah realisasi
+        $this->editingIndikatorId   = $indikatorId;
+        $this->editNamaIndikator    = $indikator->nama_indikator;
+        $this->editSatuan           = $indikator->satuan;
+        $this->editTargetBulanan    = $indikator->target_bulanan;
+    }
+
+    public function simpanEditIndikator(): void
+    {
+        $this->validate([
+            'editNamaIndikator' => 'required|string|max:255',
+            'editSatuan'        => 'required|string|max:100',
+            'editTargetBulanan' => 'required|integer|min:1',
+        ]);
+
+        $indikator = IndikatorKinerja::find($this->editingIndikatorId);
+        if (! $indikator || $indikator->pegawai_id !== $this->pegawai?->id) {
+            return;
+        }
+
+        if ($indikator->penilaianHasil()->exists()) {
+            Notification::make()->title('Ditolak')->body('Indikator sudah dinilai.')->warning()->send();
+            return;
+        }
+
+        $indikator->update([
+            'nama_indikator' => $this->editNamaIndikator,
+            'satuan'         => $this->editSatuan,
+            'target_bulanan' => $this->editTargetBulanan,
+        ]);
+
+        $this->editingIndikatorId = null;
+        $this->loadData();
+
+        Notification::make()->title('Tersimpan')->body('Indikator kinerja berhasil diperbarui.')->success()->send();
+    }
+
+    public function hapusIndikator(int $indikatorId): void
+    {
+        $indikator = IndikatorKinerja::find($indikatorId);
+        if (! $indikator || $indikator->pegawai_id !== $this->pegawai?->id) {
+            return;
+        }
+
+        if ($indikator->penilaianHasil()->exists()) {
+            Notification::make()
+                ->title('Tidak Dapat Dihapus')
+                ->body('Indikator ini sudah dinilai oleh atasan.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        // Hapus semua data terkait sebelum hapus indikator
+        $indikator->realisasiKinerja()->delete();
+        $indikator->buktiDukung()->delete();
+        $indikator->feedbackHasil()->delete();
+        $indikator->delete();
+
+        if ($this->editingIndikatorId === $indikatorId) {
+            $this->editingIndikatorId = null;
+        }
+
+        $this->loadData();
+
+        Notification::make()->title('Dihapus')->body('Indikator kinerja berhasil dihapus.')->success()->send();
+    }
+
+    // ── Export PDF ─────────────────────────────────────────────────────────────
 
     public function exportPdf(): mixed
     {
