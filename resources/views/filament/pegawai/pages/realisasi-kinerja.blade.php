@@ -73,19 +73,23 @@
                         $feedbackList = $indikator['feedback_hasil'] ?? [];
                     @endphp
 
+                    {{-- ══ OUTER CARD ══ --}}
                     <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
-                        {{-- Header --}}
+
+                        {{-- ── Header ── --}}
                         <div class="p-5 border-b border-gray-100 dark:border-gray-800">
                             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                {{-- Kiri: nama + satuan --}}
                                 <div>
                                     <h4 class="font-semibold text-gray-950 dark:text-white text-base">{{ $indikator['nama_indikator'] }}</h4>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                                         Satuan: <strong>{{ $indikator['satuan'] }}</strong> &bull; Target: <strong>{{ $target }}</strong>
                                     </p>
                                 </div>
-                                <div class="flex items-center gap-4">
-                                    {{-- Progress --}}
-                                    <div style="min-width: 160px;">
+                                {{-- Kanan: progress + badge + tombol --}}
+                                <div class="flex flex-wrap items-center gap-3">
+                                    {{-- Progress bar --}}
+                                    <div style="min-width:140px;">
                                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
                                             <span class="text-sm text-gray-500">{{ $totalRealisasi }}/{{ $target }}</span>
                                             <span class="text-sm font-bold" style="color:{{ $progressColor }}">{{ $capaian }}%</span>
@@ -94,40 +98,38 @@
                                             <div style="height:8px;border-radius:9999px;background:{{ $progressColor }};width:{{ min($capaian, 100) }}%;transition:width 0.5s ease;"></div>
                                         </div>
                                     </div>
-                                    {{-- Penilaian Atasan Badge --}}
+                                    {{-- Badge nilai atasan --}}
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         {{ $penilaian ? match($penilaian['nilai']) {
                                             'di_atas_ekspektasi' => 'bg-success-100 text-success-700 dark:bg-success-500/10 dark:text-success-400',
-                                            'sesuai_ekspektasi' => 'bg-info-100 text-info-700 dark:bg-info-500/10 dark:text-info-400',
-                                            'perlu_perbaikan' => 'bg-danger-100 text-danger-700 dark:bg-danger-500/10 dark:text-danger-400',
-                                            default => 'bg-gray-100 text-gray-700'
+                                            'sesuai_ekspektasi'  => 'bg-info-100 text-info-700 dark:bg-info-500/10 dark:text-info-400',
+                                            'perlu_perbaikan'    => 'bg-danger-100 text-danger-700 dark:bg-danger-500/10 dark:text-danger-400',
+                                            default              => 'bg-gray-100 text-gray-700',
                                         } : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' }}">
                                         {{ $nilaiEmoji }} {{ $nilaiLabel }}
                                     </span>
-                                    <div class="flex gap-2 flex-wrap">
-                                        <x-filament::button size="sm" color="primary" icon="heroicon-o-plus"
-                                                            wire:click="openTambahRealisasi({{ $indikator['id'] }})">
-                                            Tambah Realisasi
+                                    {{-- Tombol aksi --}}
+                                    <x-filament::button size="sm" color="primary" icon="heroicon-o-plus"
+                                        wire:click="openTambahRealisasi({{ $indikator['id'] }})">
+                                        Tambah Realisasi
+                                    </x-filament::button>
+                                    @if(! $penilaian)
+                                        <x-filament::button size="sm" color="warning" icon="heroicon-o-pencil-square"
+                                            wire:click="openEditIndikator({{ $indikator['id'] }})">
+                                            Edit
                                         </x-filament::button>
-
-                                        {{-- Edit & Hapus hanya saat BELUM dinilai --}}
-                                        @if(! $penilaian)
-                                            <x-filament::button size="sm" color="warning" icon="heroicon-o-pencil-square"
-                                                                wire:click="openEditIndikator({{ $indikator['id'] }})">
-                                                Edit
-                                            </x-filament::button>
-                                            <x-filament::button size="sm" color="danger" icon="heroicon-o-trash"
-                                                                wire:click="hapusIndikator({{ $indikator['id'] }})"
-                                                                wire:confirm="Yakin hapus indikator '{{ $indikator['nama_indikator'] }}'? Semua realisasi dan bukti dukungnya akan ikut terhapus.">
-                                                Hapus
-                                            </x-filament::button>
-                                        @endif
-                                    </div>
+                                        <x-filament::button size="sm" color="danger" icon="heroicon-o-trash"
+                                            wire:click="hapusIndikator({{ $indikator['id'] }})"
+                                            wire:confirm="Yakin hapus indikator '{{ $indikator['nama_indikator'] }}'? Semua realisasi terkait akan ikut terhapus.">
+                                            Hapus
+                                        </x-filament::button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
+                        {{-- ── /Header ── --}}
 
-                        {{-- Form Edit Indikator (inline, hanya saat belum dinilai) --}}
+                        {{-- ── Form Edit Indikator (inline, hanya sebelum dinilai) ── --}}
                         @if($editingIndikatorId === $indikator['id'])
                             <div class="p-5 border-b border-gray-100 dark:border-gray-800" style="background-color:#fffbeb;">
                                 <h5 style="font-weight:600;font-size:0.875rem;color:#b45309;margin-bottom:12px;">
@@ -167,8 +169,9 @@
                                 </form>
                             </div>
                         @endif
+                        {{-- ── /Form Edit ── --}}
 
-                        {{-- Form Tambah Realisasi (inline) --}}
+                        {{-- ── Form Tambah Realisasi (inline) ── --}}
                         @if($selectedIndikatorId === $indikator['id'])
                             <div class="p-5 border-b border-gray-100 dark:border-gray-800" style="background-color:#f0f9ff;">
                                 <h5 style="font-weight:600;font-size:0.875rem;color:#0369a1;margin-bottom:12px;">
@@ -227,9 +230,9 @@
                                 </form>
                             </div>
                         @endif
+                        {{-- ── /Form Tambah Realisasi ── --}}
 
-
-                        {{-- Realisasi History --}}
+                        {{-- ── Riwayat Realisasi ── --}}
                         @if(count($indikator['realisasi_kinerja'] ?? []) > 0)
                             <div class="p-4">
                                 <p style="font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Riwayat Realisasi</p>
@@ -261,8 +264,9 @@
                                 </div>
                             </div>
                         @endif
+                        {{-- ── /Riwayat Realisasi ── --}}
 
-                        {{-- Bukti Dukung --}}
+                        {{-- ── Bukti Dukung ── --}}
                         @if(count($indikator['bukti_dukung'] ?? []) > 0)
                             <div class="p-4 border-t border-gray-100 dark:border-gray-800">
                                 <p style="font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Bukti Dukung</p>
@@ -285,8 +289,9 @@
                                 </div>
                             </div>
                         @endif
+                        {{-- ── /Bukti Dukung ── --}}
 
-                        {{-- Feedback dari Atasan --}}
+                        {{-- ── Feedback dari Atasan ── --}}
                         @if(count($feedbackList) > 0)
                             <div class="p-4 border-t border-gray-100 dark:border-gray-800">
                                 <p style="font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Feedback Atasan</p>
@@ -302,10 +307,15 @@
                                 </div>
                             </div>
                         @endif
+                        {{-- ── /Feedback dari Atasan ── --}}
+
                     </div>
+                    {{-- ══ /OUTER CARD ══ --}}
+
                 @endforeach
             </div>
         </div>
+
 
         {{-- ===== SECTION 2: HASIL PENILAIAN ===== --}}
         @if($sudahDinilai)
