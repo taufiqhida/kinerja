@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\TtdController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -10,7 +11,14 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/export/hasil-penilaian/{pegawaiId?}', [ExportController::class, 'exportHasilPenilaian'])
         ->name('export.hasil-penilaian');
+
+    Route::post('/verifikasi-ttd/{token}/konfirmasi', [TtdController::class, 'konfirmasi'])
+        ->name('ttd.konfirmasi');
 });
+
+// Verifikasi QR code BOLEH diakses publik (tidak perlu login) — siapapun bisa lihat status
+Route::get('/verifikasi-ttd/{token}', [TtdController::class, 'verify'])
+    ->name('ttd.verify');
 
 // Default login route redirect to prevent RouteNotFoundException
 Route::redirect('/login', '/admin/login')->name('login');

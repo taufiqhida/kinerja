@@ -392,23 +392,83 @@
             </tbody>
         </table>
 
-        {{-- Footer / Tanda Tangan --}}
+        {{-- Footer / Tanda Tangan Digital --}}
         <div class="footer">
-            <div style="font-style: italic; color: #718096; margin-bottom: 15px; font-size: 7.5px;">
+            <div style="font-style: italic; color: #718096; margin-bottom: 10px; font-size: 7.5px;">
                 Dicetak otomatis dari Sistem eKinerja Puskesmas Bugangan &bull; Tanggal Cetak: {{ $tanggalCetak }}
+                @if($ttdRecord)
+                    &bull; ID Dokumen: <strong>{{ strtoupper(substr($ttdRecord->token, 0, 10)) }}</strong>
+                @endif
             </div>
+
+            @if($ttdRecord && $qrBase64)
+                {{-- TTD Digital dengan QR Code --}}
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:10px;">
+                    <div style="font-size:8px;font-weight:bold;color:#1e3a5f;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">
+                        ✓ Dokumen Ini Telah Ditandatangani Secara Digital
+                    </div>
+                    <div style="font-size:7.5px;color:#64748b;margin-bottom:4px;">
+                        Scan QR Code untuk memverifikasi keaslian dokumen ini melalui Sistem eKinerja Puskesmas Bugangan.
+                    </div>
+                    <div style="display:table;width:100%;">
+                        <div style="display:table-cell;vertical-align:middle;width:60px;">
+                            <img src="{{ $qrBase64 }}" style="width:55px;height:55px;" alt="QR Verifikasi"/>
+                        </div>
+                        <div style="display:table-cell;vertical-align:middle;padding-left:10px;">
+                            <div style="font-size:7px;color:#374151;line-height:1.5;">
+                                <div><strong>Status Kepala:</strong>
+                                    @if($ttdRecord->ttd_kepala)
+                                        <span style="color:#16a34a;">✓ Ditandatangani</span>
+                                        @if($ttdRecord->kepala_signed_at)
+                                            — {{ \Carbon\Carbon::parse($ttdRecord->kepala_signed_at)->translatedFormat('d F Y, H:i') }} WIB
+                                        @endif
+                                    @else
+                                        <span style="color:#dc2626;">✗ Belum Ditandatangani</span>
+                                    @endif
+                                </div>
+                                <div style="margin-top:2px;"><strong>Status Pegawai:</strong>
+                                    @if($ttdRecord->ttd_pegawai)
+                                        <span style="color:#16a34a;">✓ Dikonfirmasi</span>
+                                        @if($ttdRecord->pegawai_signed_at)
+                                            — {{ \Carbon\Carbon::parse($ttdRecord->pegawai_signed_at)->translatedFormat('d F Y, H:i') }} WIB
+                                        @endif
+                                    @else
+                                        <span style="color:#d97706;">⏳ Menunggu Konfirmasi Pegawai</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Area Tanda Tangan --}}
             <table style="width: 100%; border: none; font-size: 9px; line-height: 1.5; background-color: transparent;">
                 <tr style="background-color: transparent;">
                     <td style="width: 50%; text-align: center; border: none; padding: 0; vertical-align: top; background-color: transparent;">
                         <p style="font-weight: bold;">Pegawai Yang Dinilai,</p>
-                        <br><br><br><br>
+                        @if($ttdRecord && $ttdRecord->ttd_pegawai)
+                            <div style="margin:4px auto;width:55px;height:55px;border:1px dashed #16a34a;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                                <img src="{{ $qrBase64 }}" style="width:50px;height:50px;" alt="TTD Digital"/>
+                            </div>
+                            <p style="font-size:7px;color:#16a34a;font-style:italic;">✓ Telah Dikonfirmasi Digital</p>
+                        @else
+                            <br><br><br><br>
+                        @endif
                         <p style="font-weight: bold; text-decoration: underline; color: #000;">{{ $pegawai->nama_lengkap }}</p>
                         <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIK. {{ $pegawai->nik }}</p>
                     </td>
                     <td style="width: 50%; text-align: center; border: none; padding: 0; vertical-align: top; background-color: transparent;">
                         <p>Semarang, {{ $tanggalCetak }}</p>
                         <p style="font-weight: bold;">Atasan Penilai,</p>
-                        <br><br><br><br>
+                        @if($ttdRecord && $ttdRecord->ttd_kepala)
+                            <div style="margin:4px auto;width:55px;height:55px;border:1px dashed #2563eb;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                                <img src="{{ $qrBase64 }}" style="width:50px;height:50px;" alt="TTD Digital"/>
+                            </div>
+                            <p style="font-size:7px;color:#2563eb;font-style:italic;">✓ Ditandatangani Digital</p>
+                        @else
+                            <br><br><br><br>
+                        @endif
                         <p style="font-weight: bold; text-decoration: underline; color: #000;">{{ $pegawai->kepala?->nama_lengkap ?? '___________________' }}</p>
                         @if($pegawai->kepala?->nip)
                             <p style="font-size: 8.5px; color: #4a5568; margin-top: 2px;">NIP. {{ $pegawai->kepala->nip }}</p>
@@ -422,3 +482,4 @@
     </div>
 </body>
 </html>
+

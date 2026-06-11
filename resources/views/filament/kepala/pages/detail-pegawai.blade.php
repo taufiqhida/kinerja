@@ -379,3 +379,16 @@
     @endif
 
 </x-filament-panels::page>
+
+@push('scripts')
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('open-pdf', (event) => {
+            const url = event.url || event[0]?.url || event[0];
+            if (url) {
+                window.open(url, '_blank');
+            }
+        });
+    });
+</script>
+@endpush

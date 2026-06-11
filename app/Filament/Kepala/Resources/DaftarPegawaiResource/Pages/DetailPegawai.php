@@ -10,6 +10,7 @@ use App\Models\PenilaianHasil;
 use App\Models\PenilaianPerilaku;
 use App\Models\PerilakuMaster;
 use App\Models\PeriodePenilaian;
+use App\Models\TtdPenilaian;
 use App\Services\NotifikasiService;
 use App\Services\PerhitunganNilaiService;
 use Filament\Forms;
@@ -37,6 +38,7 @@ class DetailPegawai extends Page implements HasForms
     public array $nilaiAkhir = [];
     public int $selectedPeriodeId = 0;
     public array $periodeOptions = [];
+    public ?string $pdfUrl = null;
 
     public function updatedSelectedPeriodeId(): void
     {
@@ -241,6 +243,7 @@ class DetailPegawai extends Page implements HasForms
 
     /**
      * Simpan semua penilaian (Hasil Kerja + Perilaku) sekaligus dalam satu aksi.
+     * Setelah simpan, generate QR code TTD dan arahkan ke PDF.
      */
     public function simpanSemua(): void
     {
@@ -265,11 +268,27 @@ class DetailPegawai extends Page implements HasForms
         $this->doSimpanHasil();
         $this->doSimpanPerilaku();
 
+        // Generate / refresh token TTD untuk QR code
+        $ttd = TtdPenilaian::generateOrRefresh(
+            pegawaiId: $this->record->id,
+            kepalaId:  $this->kepala->id,
+            periodeId: $this->periodeAktif->id,
+        );
+
         $this->loadData();
 
+        // Set URL PDF agar JS bisa buka tab baru
+        $this->pdfUrl = route('export.hasil-penilaian', [
+            'pegawaiId'  => $this->record->id,
+            'periode_id' => $this->periodeAktif->id,
+        ]);
+
+        // Dispatch ke browser untuk buka PDF di tab baru
+        $this->dispatch('open-pdf', url: $this->pdfUrl);
+
         Notification::make()
-            ->title('✅ Semua Penilaian Tersimpan')
-            ->body('Penilaian Hasil Kerja dan Perilaku berhasil disimpan sekaligus.')
+            ->title('✅ Semua Penilaian Tersimpan & TTD Dibuat')
+            ->body('Penilaian berhasil disimpan. QR Code TTD sudah digenerate. PDF laporan sedang dibuka.')
             ->success()
             ->send();
     }
