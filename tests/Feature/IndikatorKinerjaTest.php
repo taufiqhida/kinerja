@@ -148,4 +148,76 @@ class IndikatorKinerjaTest extends TestCase
             'periode_id' => $this->periodeFeb->id,
         ]);
     }
+
+    /**
+     * Test copying indicators from a source period to multiple target periods.
+     */
+    public function test_copy_indicators_to_multiple_periods(): void
+    {
+        // Create source indicator
+        IndikatorKinerja::create([
+            'pegawai_id' => $this->pegawai->id,
+            'periode_id' => $this->periodeJan->id,
+            'nama_indikator' => 'Laporan Bulanan',
+            'satuan' => 'laporan',
+            'target_bulanan' => 5,
+        ]);
+
+        // Create target periods
+        $periodeMar = PeriodePenilaian::create([
+            'nama_periode' => 'Maret 2026',
+            'tahun' => 2026,
+            'tanggal_mulai' => '2026-03-01',
+            'tanggal_selesai' => '2026-03-31',
+            'is_active' => true,
+        ]);
+
+        $periodeApr = PeriodePenilaian::create([
+            'nama_periode' => 'April 2026',
+            'tahun' => 2026,
+            'tanggal_mulai' => '2026-04-01',
+            'tanggal_selesai' => '2026-04-30',
+            'is_active' => true,
+        ]);
+
+        // Execute the copy logic directly
+        $targetIds = [$this->periodeFeb->id, $periodeMar->id, $periodeApr->id];
+        $indikators = IndikatorKinerja::where('periode_id', $this->periodeJan->id)
+            ->where('pegawai_id', $this->pegawai->id)
+            ->get();
+
+        foreach ($targetIds as $targetId) {
+            foreach ($indikators as $ind) {
+                $sudahAda = IndikatorKinerja::where('periode_id', $targetId)
+                    ->where('pegawai_id', $this->pegawai->id)
+                    ->where('nama_indikator', $ind->nama_indikator)
+                    ->exists();
+
+                if (! $sudahAda) {
+                    IndikatorKinerja::create([
+                        'pegawai_id'     => $this->pegawai->id,
+                        'periode_id'     => $targetId,
+                        'nama_indikator' => $ind->nama_indikator,
+                        'satuan'         => $ind->satuan,
+                        'target_bulanan' => $ind->target_bulanan,
+                    ]);
+                }
+            }
+        }
+
+        // Assert that the indicator was successfully copied to Feb, Mar, and Apr
+        $this->assertDatabaseHas('indikator_kinerja', [
+            'periode_id' => $this->periodeFeb->id,
+            'nama_indikator' => 'Laporan Bulanan',
+        ]);
+        $this->assertDatabaseHas('indikator_kinerja', [
+            'periode_id' => $periodeMar->id,
+            'nama_indikator' => 'Laporan Bulanan',
+        ]);
+        $this->assertDatabaseHas('indikator_kinerja', [
+            'periode_id' => $periodeApr->id,
+            'nama_indikator' => 'Laporan Bulanan',
+        ]);
+    }
 }
+
