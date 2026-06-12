@@ -254,5 +254,49 @@ class UnifiedLoginAndRedirectsTest extends TestCase
         $responseAdmin->assertRedirect('/admin/login');
         $this->assertNull(auth()->user());
     }
+
+    /**
+     * Test that a logged-in pegawai is redirected away from the admin panel to their own panel.
+     */
+    public function test_pegawai_cannot_access_admin_panel(): void
+    {
+        $pegawaiUser = User::create([
+            'name' => 'Pegawai Test Security',
+            'email' => 'pegawai_sec@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'pegawai',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($pegawaiUser)->get('/admin');
+        $response->assertRedirect('/pegawai');
+    }
+
+    /**
+     * Test that a logged-in kepala is redirected away from the admin panel to their own panel.
+     */
+    public function test_kepala_cannot_access_admin_panel(): void
+    {
+        $kepalaUser = User::create([
+            'name' => 'Kepala Test Security',
+            'email' => 'kepala_sec@simkin.test',
+            'password' => bcrypt('password'),
+            'role' => 'kepala',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($kepalaUser)->get('/admin');
+        $response->assertRedirect('/kepala');
+    }
+
+    /**
+     * Test that the auto-login route is disabled and returns 404 in non-local environments (like testing).
+     */
+    public function test_auto_login_route_disabled_in_non_local_environments(): void
+    {
+        $response = $this->get('/auto-login/admin');
+        $response->assertStatus(404);
+    }
 }
+
 

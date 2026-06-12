@@ -31,10 +31,6 @@ class RedirectIfNotAdmin
             return $next($request);
         }
 
-        // Izinkan request livewire
-        if ($request->is('livewire/*')) {
-            return $next($request);
-        }
 
         // Jika user sudah login tapi bukan admin, redirect ke panel mereka
         if ($user && $user->role !== 'admin') {

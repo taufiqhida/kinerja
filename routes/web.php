@@ -36,16 +36,18 @@ Route::get('/{panel}/logout', function (string $panel) {
 })->where('panel', 'admin|kepala|pegawai');
 
 
-// Auto-login route for testing
-Route::get('/auto-login/{role}', function (string $role) {
-    $email = match ($role) {
-        'admin' => 'admin@simkin.test',
-        'kepala' => 'kepala1@simkin.test',
-        'pegawai' => 'budi@simkin.test',
-        default => abort(404),
-    };
-    $user = \App\Models\User::where('email', $email)->firstOrFail();
-    auth()->login($user);
-    return redirect('/' . ($role === 'admin' ? 'admin' : $role));
-});
+// Auto-login route for testing (only in local environment)
+if (app()->environment('local')) {
+    Route::get('/auto-login/{role}', function (string $role) {
+        $email = match ($role) {
+            'admin' => 'admin@simkin.test',
+            'kepala' => 'kepala1@simkin.test',
+            'pegawai' => 'budi@simkin.test',
+            default => abort(404),
+        };
+        $user = \App\Models\User::where('email', $email)->firstOrFail();
+        auth()->login($user);
+        return redirect('/' . ($role === 'admin' ? 'admin' : $role));
+    });
+}
 
