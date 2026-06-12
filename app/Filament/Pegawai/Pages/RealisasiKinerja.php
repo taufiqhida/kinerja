@@ -34,7 +34,7 @@ class RealisasiKinerja extends Page
 
     // Form state for adding realisasi (+ optional bukti dukung)
     public ?int $selectedIndikatorId = null;
-    public int $jumlahRealisasi = 0;
+    public int|string $jumlahRealisasi = 0;
     public string $keterangan = '';
     public string $tanggalRealisasi = '';
     public string $judulBukti = '';
@@ -44,11 +44,11 @@ class RealisasiKinerja extends Page
     public ?int $editingIndikatorId = null;
     public string $editNamaIndikator = '';
     public string $editSatuan = '';
-    public int $editTargetBulanan = 1;
+    public int|string $editTargetBulanan = 1;
 
     // Form state for editing an individual realisasi entry
     public ?int $editingRealisasiId = null;
-    public int $editJumlahRealisasi = 0;
+    public int|string $editJumlahRealisasi = 0;
     public string $editTanggalRealisasi = '';
     public string $editKeteranganRealisasi = '';
 
@@ -180,7 +180,7 @@ class RealisasiKinerja extends Page
 
         $rules = [
             'selectedIndikatorId' => 'required|exists:indikator_kinerja,id',
-            'jumlahRealisasi'     => 'required|integer|min:1',
+            'jumlahRealisasi'     => 'required|integer|min:1|max:99999',
             'tanggalRealisasi'    => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
         ];
 
@@ -191,9 +191,12 @@ class RealisasiKinerja extends Page
 
         $this->validate($rules);
 
+        // Cast paksa ke int — proteksi tambahan dari manipulasi konsol
+        $jumlah = max(1, (int) $this->jumlahRealisasi);
+
         RealisasiKinerjaModel::create([
             'indikator_kinerja_id' => $this->selectedIndikatorId,
-            'jumlah_realisasi'     => $this->jumlahRealisasi,
+            'jumlah_realisasi'     => $jumlah,
             'keterangan'           => $this->keterangan,
             'tanggal_realisasi'    => $this->tanggalRealisasi,
         ]);
@@ -241,8 +244,8 @@ class RealisasiKinerja extends Page
     public function simpanEditRealisasi(): void
     {
         $this->validate([
-            'editJumlahRealisasi'   => 'required|integer|min:1',
-            'editTanggalRealisasi'  => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
+            'editJumlahRealisasi'  => 'required|integer|min:1|max:99999',
+            'editTanggalRealisasi' => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
         ]);
 
         $realisasi = RealisasiKinerjaModel::find($this->editingRealisasiId);
@@ -256,10 +259,13 @@ class RealisasiKinerja extends Page
             return;
         }
 
+        // Cast paksa ke int — proteksi tambahan dari manipulasi konsol
+        $jumlah = max(1, (int) $this->editJumlahRealisasi);
+
         $realisasi->update([
-            'jumlah_realisasi'   => $this->editJumlahRealisasi,
-            'tanggal_realisasi'  => $this->editTanggalRealisasi,
-            'keterangan'         => $this->editKeteranganRealisasi,
+            'jumlah_realisasi'  => $jumlah,
+            'tanggal_realisasi' => $this->editTanggalRealisasi,
+            'keterangan'        => $this->editKeteranganRealisasi,
         ]);
 
         $this->editingRealisasiId = null;
