@@ -113,65 +113,13 @@
                                         wire:click="openTambahRealisasi({{ $indikator['id'] }})">
                                         Tambah Realisasi
                                     </x-filament::button>
-                                    @if(! $penilaian)
-                                        <x-filament::button size="sm" color="warning" icon="heroicon-o-pencil-square"
-                                            wire:click="openEditIndikator({{ $indikator['id'] }})">
-                                            Edit
-                                        </x-filament::button>
-                                        <x-filament::button size="sm" color="danger" icon="heroicon-o-trash"
-                                            wire:click="hapusIndikator({{ $indikator['id'] }})"
-                                            wire:confirm="Yakin hapus indikator '{{ $indikator['nama_indikator'] }}'? Semua realisasi terkait akan ikut terhapus.">
-                                            Hapus
-                                        </x-filament::button>
-                                    @endif
                                 </div>
                             </div>
                         </div>
                         {{-- ── /Header ── --}}
 
-                        {{-- ── Form Edit Indikator (inline, hanya sebelum dinilai) ── --}}
-                        @if($editingIndikatorId === $indikator['id'])
-                            <div class="p-5 border-b border-gray-100 dark:border-gray-800" style="background-color:#fffbeb;">
-                                <h5 style="font-weight:600;font-size:0.875rem;color:#b45309;margin-bottom:12px;">
-                                    ✏️ Edit Indikator Kinerja
-                                </h5>
-                                <form wire:submit="simpanEditIndikator">
-                                    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:end;">
-                                        <div>
-                                            <label style="display:block;font-size:0.75rem;font-weight:500;color:#374151;margin-bottom:4px;">Nama Indikator *</label>
-                                            <input type="text" wire:model="editNamaIndikator"
-                                                   style="width:100%;padding:8px 12px;border:1px solid #d97706;border-radius:8px;font-size:0.875rem;background:#fff;" />
-                                            @error('editNamaIndikator') <span style="font-size:0.75rem;color:#ef4444;">{{ $message }}</span> @enderror
-                                        </div>
-                                        <div>
-                                            <label style="display:block;font-size:0.75rem;font-weight:500;color:#374151;margin-bottom:4px;">Satuan *</label>
-                                            <input type="text" wire:model="editSatuan"
-                                                   style="width:100%;padding:8px 12px;border:1px solid #d97706;border-radius:8px;font-size:0.875rem;background:#fff;" />
-                                            @error('editSatuan') <span style="font-size:0.75rem;color:#ef4444;">{{ $message }}</span> @enderror
-                                        </div>
-                                        <div>
-                                            <label style="display:block;font-size:0.75rem;font-weight:500;color:#374151;margin-bottom:4px;">Target Bulanan *</label>
-                                            <input type="number" wire:model="editTargetBulanan" min="1"
-                                                   style="width:100%;padding:8px 12px;border:1px solid #d97706;border-radius:8px;font-size:0.875rem;background:#fff;" />
-                                            @error('editTargetBulanan') <span style="font-size:0.75rem;color:#ef4444;">{{ $message }}</span> @enderror
-                                        </div>
-                                    </div>
-                                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
-                                        <button type="button" wire:click="$set('editingIndikatorId', null)"
-                                                style="padding:8px 16px;border-radius:8px;font-size:0.875rem;font-weight:500;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
-                                            Batal
-                                        </button>
-                                        <button type="submit"
-                                                style="padding:8px 16px;border-radius:8px;font-size:0.875rem;font-weight:500;background:#d97706;color:#fff;border:none;cursor:pointer;">
-                                            💾 Simpan Perubahan
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        @endif
-                        {{-- ── /Form Edit ── --}}
-
                         {{-- ── Form Tambah Realisasi (inline) ── --}}
+
                         @if($selectedIndikatorId === $indikator['id'])
                             <div class="p-5 border-b border-gray-100 dark:border-gray-800" style="background-color:#f0f9ff;">
                                 <h5 style="font-weight:600;font-size:0.875rem;color:#0369a1;margin-bottom:12px;">
