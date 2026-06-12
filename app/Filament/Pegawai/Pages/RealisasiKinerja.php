@@ -46,6 +46,12 @@ class RealisasiKinerja extends Page
     public string $editSatuan = '';
     public int $editTargetBulanan = 1;
 
+    // Form state for editing an individual realisasi entry
+    public ?int $editingRealisasiId = null;
+    public int $editJumlahRealisasi = 0;
+    public string $editTanggalRealisasi = '';
+    public string $editKeteranganRealisasi = '';
+
     // Hasil penilaian data (merged from HasilPenilaian page)
     public array $nilaiAkhir = [];
     public array $penilaianPerilaku = [];
@@ -204,6 +210,62 @@ class RealisasiKinerja extends Page
         $this->loadData();
 
         Notification::make()->title('Berhasil')->body('Realisasi berhasil ditambahkan.')->success()->send();
+    }
+
+    public function openEditRealisasi(int $id): void
+    {
+        $realisasi = RealisasiKinerjaModel::find($id);
+        if (! $realisasi) return;
+
+        // Pastikan realisasi milik pegawai ini
+        $indikator = IndikatorKinerja::find($realisasi->indikator_kinerja_id);
+        if (! $indikator || $indikator->pegawai_id !== $this->pegawai?->id) return;
+
+        // Blokir jika sudah ada penilaian untuk indikator ini
+        if ($indikator->penilaianHasil()->exists()) {
+            Notification::make()
+                ->title('Tidak Dapat Diedit')
+                ->body('Realisasi ini sudah dinilai oleh atasan.')
+                ->warning()->send();
+            return;
+        }
+
+        $this->selectedIndikatorId   = null;
+        $this->editingIndikatorId    = null;
+        $this->editingRealisasiId    = $id;
+        $this->editJumlahRealisasi   = $realisasi->jumlah_realisasi;
+        $this->editTanggalRealisasi  = \Carbon\Carbon::parse($realisasi->tanggal_realisasi)->toDateString();
+        $this->editKeteranganRealisasi = $realisasi->keterangan ?? '';
+    }
+
+    public function simpanEditRealisasi(): void
+    {
+        $this->validate([
+            'editJumlahRealisasi'   => 'required|integer|min:1',
+            'editTanggalRealisasi'  => "required|date|after_or_equal:{$this->minTanggalRealisasi}|before_or_equal:{$this->maxTanggalRealisasi}",
+        ]);
+
+        $realisasi = RealisasiKinerjaModel::find($this->editingRealisasiId);
+        if (! $realisasi) return;
+
+        $indikator = IndikatorKinerja::find($realisasi->indikator_kinerja_id);
+        if (! $indikator || $indikator->pegawai_id !== $this->pegawai?->id) return;
+
+        if ($indikator->penilaianHasil()->exists()) {
+            Notification::make()->title('Ditolak')->body('Realisasi sudah dinilai.')->warning()->send();
+            return;
+        }
+
+        $realisasi->update([
+            'jumlah_realisasi'   => $this->editJumlahRealisasi,
+            'tanggal_realisasi'  => $this->editTanggalRealisasi,
+            'keterangan'         => $this->editKeteranganRealisasi,
+        ]);
+
+        $this->editingRealisasiId = null;
+        $this->loadData();
+
+        Notification::make()->title('Tersimpan')->body('Realisasi berhasil diperbarui.')->success()->send();
     }
 
     public function hapusRealisasi(int $id): void

@@ -238,33 +238,104 @@
                                 <p style="font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Riwayat Realisasi</p>
                                 <div class="space-y-2">
                                     @foreach($indikator['realisasi_kinerja'] as $realisasi)
-                                        <div class="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
-                                            <div style="display:flex;align-items:center;gap:12px;">
-                                                <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#e0e7ff;color:#4338ca;font-size:0.875rem;font-weight:700;">
-                                                    {{ $realisasi['jumlah_realisasi'] }}
-                                                </span>
-                                                <div>
-                                                    <p class="text-sm text-gray-950 dark:text-white">
-                                                        {{ $realisasi['keterangan'] ?: 'Tanpa keterangan' }}
-                                                    </p>
-                                                    <p class="text-xs text-gray-400">
-                                                        {{ \Carbon\Carbon::parse($realisasi['tanggal_realisasi'])->timezone(config('app.timezone'))->format('d M Y') }}
-                                                    </p>
+
+                                        {{-- Baris utama --}}
+                                        <div class="rounded-lg bg-gray-50 dark:bg-gray-800 overflow-hidden">
+                                            <div class="flex items-center justify-between px-3 py-2">
+                                                <div style="display:flex;align-items:center;gap:12px;">
+                                                    <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#e0e7ff;color:#4338ca;font-size:0.875rem;font-weight:700;">
+                                                        {{ $realisasi['jumlah_realisasi'] }}
+                                                    </span>
+                                                    <div>
+                                                        <p class="text-sm text-gray-950 dark:text-white">
+                                                            {{ $realisasi['keterangan'] ?: 'Tanpa keterangan' }}
+                                                        </p>
+                                                        <p class="text-xs text-gray-400">
+                                                            {{ \Carbon\Carbon::parse($realisasi['tanggal_realisasi'])->timezone(config('app.timezone'))->format('d M Y') }}
+                                                        </p>
+                                                    </div>
                                                 </div>
+                                                {{-- Tombol aksi (hanya sebelum dinilai) --}}
+                                                @if(! $penilaian)
+                                                    <div style="display:flex;gap:4px;align-items:center;">
+                                                        {{-- Edit --}}
+                                                        <button wire:click="openEditRealisasi({{ $realisasi['id'] }})"
+                                                                title="Edit realisasi"
+                                                                style="color:#7c3aed;cursor:pointer;background:none;border:none;padding:4px;border-radius:6px;"
+                                                                onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='none'">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                                            </svg>
+                                                        </button>
+                                                        {{-- Hapus --}}
+                                                        <button wire:click="hapusRealisasi({{ $realisasi['id'] }})"
+                                                                wire:confirm="Yakin hapus realisasi ini?"
+                                                                title="Hapus realisasi"
+                                                                style="color:#ef4444;cursor:pointer;background:none;border:none;padding:4px;border-radius:6px;"
+                                                                onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                @else
+                                                    {{-- Hanya hapus jika sudah dinilai (tidak bisa edit) --}}
+                                                    <button wire:click="hapusRealisasi({{ $realisasi['id'] }})"
+                                                            wire:confirm="Yakin hapus realisasi ini?"
+                                                            style="color:#ef4444;cursor:pointer;background:none;border:none;padding:4px;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                        </svg>
+                                                    </button>
+                                                @endif
                                             </div>
-                                            <button wire:click="hapusRealisasi({{ $realisasi['id'] }})"
-                                                    wire:confirm="Yakin hapus realisasi ini?"
-                                                    style="color:#ef4444;cursor:pointer;background:none;border:none;padding:4px;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                                </svg>
-                                            </button>
+
+                                            {{-- Form Edit Inline (muncul di bawah baris jika diklik edit) --}}
+                                            @if($editingRealisasiId === $realisasi['id'])
+                                                <div style="padding:12px 16px;background:#f5f3ff;border-top:1px solid #ddd6fe;">
+                                                    <p style="font-size:0.75rem;font-weight:600;color:#7c3aed;margin-bottom:10px;">✏️ Edit Realisasi</p>
+                                                    <form wire:submit="simpanEditRealisasi">
+                                                        <div style="display:grid;grid-template-columns:80px 1fr 2fr;gap:10px;align-items:end;">
+                                                            <div>
+                                                                <label style="display:block;font-size:0.7rem;font-weight:500;color:#374151;margin-bottom:3px;">Jumlah *</label>
+                                                                <input type="number" wire:model="editJumlahRealisasi" min="1"
+                                                                       style="width:100%;padding:6px 10px;border:1px solid #a78bfa;border-radius:6px;font-size:0.875rem;background:#fff;" />
+                                                                @error('editJumlahRealisasi') <span style="font-size:0.7rem;color:#ef4444;">{{ $message }}</span> @enderror
+                                                            </div>
+                                                            <div>
+                                                                <label style="display:block;font-size:0.7rem;font-weight:500;color:#374151;margin-bottom:3px;">Tanggal *</label>
+                                                                <input type="date" wire:model="editTanggalRealisasi"
+                                                                       min="{{ $minTanggalRealisasi }}" max="{{ $maxTanggalRealisasi }}"
+                                                                       style="width:100%;padding:6px 10px;border:1px solid #a78bfa;border-radius:6px;font-size:0.875rem;background:#fff;" />
+                                                                @error('editTanggalRealisasi') <span style="font-size:0.7rem;color:#ef4444;">{{ $message }}</span> @enderror
+                                                            </div>
+                                                            <div>
+                                                                <label style="display:block;font-size:0.7rem;font-weight:500;color:#374151;margin-bottom:3px;">Keterangan</label>
+                                                                <input type="text" wire:model="editKeteranganRealisasi" placeholder="Catatan tambahan..."
+                                                                       style="width:100%;padding:6px 10px;border:1px solid #a78bfa;border-radius:6px;font-size:0.875rem;background:#fff;" />
+                                                            </div>
+                                                        </div>
+                                                        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
+                                                            <button type="button" wire:click="$set('editingRealisasiId', null)"
+                                                                    style="padding:6px 14px;border-radius:6px;font-size:0.8rem;font-weight:500;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;cursor:pointer;">
+                                                                Batal
+                                                            </button>
+                                                            <button type="submit"
+                                                                    style="padding:6px 14px;border-radius:6px;font-size:0.8rem;font-weight:500;background:#7c3aed;color:#fff;border:none;cursor:pointer;">
+                                                                💾 Simpan
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
                                         </div>
+
                                     @endforeach
                                 </div>
                             </div>
                         @endif
                         {{-- ── /Riwayat Realisasi ── --}}
+
 
                         {{-- ── Bukti Dukung ── --}}
                         @if(count($indikator['bukti_dukung'] ?? []) > 0)
